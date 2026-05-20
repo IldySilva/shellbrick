@@ -1,0 +1,102 @@
+import 'dart:async';
+import 'dart:io';
+import 'package:dartssh2/dartssh2.dart';
+import '../../../core/exceptions.dart';
+import '../../hosts/models/ssh_host.dart';
+
+class SshService {
+  Future<SSHClient> connect({
+    required SshHost host,
+    String? password,
+    String? passphrase,
+  }) async {
+    final SSHSocket socket;
+
+    try {
+      socket = await SSHSocket.connect(
+        host.hostname,
+        host.port,
+        timeout: const Duration(seconds: 10),
+      );
+    } on SocketException {
+      throw SshException(
+        'Could not connect to ${host.hostname}:${host.port}. '
+        'Check the hostname, port, and network connection.',
+      );
+    } on TimeoutException {
+      throw SshException('Connection to ${host.hostname} timed out.');
+    }
+
+    try {
+      final SSHClient client;
+
+      switch (host.authType) {
+        case AuthType.password:
+          client = SSHClient(
+            socket,
+            username: host.username,
+            onPasswordRequest: () => password ?? '',
+          );
+
+        case AuthType.privateKey:
+          if (host.privateKeyPath == null) {
+            throw SshException('No private key path configured for this host.');
+          }
+          final String keyContent;
+          try {
+            keyContent = await File(host.privateKeyPath!).readAsString();
+          } on FileSystemException {
+            throw SshException(
+              'Could not read private key at "${host.privateKeyPath}". '
+              'Check that the file exists and is readable.',
+            );
+          }
+          final List<SSHKeyPair> keyPairs;
+          try {
+            keyPairs = SSHKeyPair.fromPem(keyContent, passphrase);
+          } catch (_) {
+            throw SshException(
+              'Could not parse private key. '
+              'If the key is encrypted, check your passphrase.',
+            );
+          }
+          client = SSHClient(
+            socket,
+            username: host.username,
+            identities: keyPairs,
+          );
+
+        case AuthType.sshAgent:
+          socket.close();
+          throw SshException('SSH Agent auth is not yet supported.');
+      }
+
+      await client.authenticated;
+      return client;
+    } on SshException {
+      rethrow;
+    } on SSHAuthFailError {
+      throw SshException('Authentication failed. Check your credentials.');
+    } on SSHAuthAbortError {
+      throw SshException('Authentication was aborted by the server.');
+    } on SSHKeyDecryptError {
+      throw SshException(
+        'Could not decrypt the private key. Check your passphrase.',
+      );
+    } catch (e) {
+      throw SshException('Connection failed: ${e.toString()}');
+    }
+  }
+
+  Future<SSHSession> openShell(
+    SSHClient client, {
+    int width = 80,
+    int height = 24,
+  }) async {
+    return client.shell(
+      pty: SSHPtyConfig(width: width, height: height),
+    );
+  }
+
+  void disconnect(SSHClient client) => client.close();
+}

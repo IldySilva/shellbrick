@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Shellbrick
+Comment=SSH workspace for developers
+Exec=shellbrick
+Icon=shellbrick
+Type=Application
+Categories=Network;RemoteAccess;TerminalEmulator;
+Keywords=ssh;terminal;remote;shell;
+StartupNotify=true
+StartupWMClass=shellbrick
