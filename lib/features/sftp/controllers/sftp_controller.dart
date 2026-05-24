@@ -7,6 +7,7 @@ class SftpController {
   final _service = SftpService();
 
   SftpClient? _sftp;
+  bool _disposed = false;
 
   final entriesNotifier = ValueNotifier<List<SftpEntry>>([]);
   final currentPathNotifier = ValueNotifier<String>('/');
@@ -15,18 +16,22 @@ class SftpController {
 
   String get currentPath => currentPathNotifier.value;
 
+  void _set<T>(ValueNotifier<T> notifier, T value) {
+    if (!_disposed) notifier.value = value;
+  }
+
   Future<void> connect(SSHClient client) async {
     _sftp?.close();
     _sftp = null;
-    entriesNotifier.value = [];
-    currentPathNotifier.value = '/';
-    errorNotifier.value = null;
+    _set(entriesNotifier, []);
+    _set(currentPathNotifier, '/');
+    _set(errorNotifier, null);
 
     try {
       _sftp = await _service.open(client);
       await _loadDir('/');
     } catch (e) {
-      errorNotifier.value = 'Could not open SFTP session: ${e.toString()}';
+      _set(errorNotifier, 'Could not open SFTP session: ${e.toString()}');
     }
   }
 
@@ -45,33 +50,31 @@ class SftpController {
   Future<void> upload(String remoteName, Uint8List data) async {
     final sftp = _sftp;
     if (sftp == null) return;
-    final remotePath = currentPath == '/'
-        ? '/$remoteName'
-        : '$currentPath/$remoteName';
-    loadingNotifier.value = true;
-    errorNotifier.value = null;
+    final remotePath =
+        currentPath == '/' ? '/$remoteName' : '$currentPath/$remoteName';
+    _set(loadingNotifier, true);
+    _set(errorNotifier, null);
     try {
       await _service.upload(sftp, remotePath, data);
       await _loadDir(currentPath);
     } catch (e) {
-      errorNotifier.value = 'Upload failed: ${e.toString()}';
-      loadingNotifier.value = false;
+      _set(errorNotifier, 'Upload failed: ${e.toString()}');
+      _set(loadingNotifier, false);
     }
   }
 
   Future<Uint8List?> download(SftpEntry entry) async {
     final sftp = _sftp;
     if (sftp == null) return null;
-    loadingNotifier.value = true;
-    errorNotifier.value = null;
+    _set(loadingNotifier, true);
+    _set(errorNotifier, null);
     try {
-      final data = await _service.download(sftp, entry.path);
-      return data;
+      return await _service.download(sftp, entry.path);
     } catch (e) {
-      errorNotifier.value = 'Download failed: ${e.toString()}';
+      _set(errorNotifier, 'Download failed: ${e.toString()}');
       return null;
     } finally {
-      loadingNotifier.value = false;
+      _set(loadingNotifier, false);
     }
   }
 
@@ -80,48 +83,49 @@ class SftpController {
     if (sftp == null) return;
     final dir = currentPath == '/' ? '' : currentPath;
     final newPath = '$dir/$newName';
-    loadingNotifier.value = true;
-    errorNotifier.value = null;
+    _set(loadingNotifier, true);
+    _set(errorNotifier, null);
     try {
       await _service.rename(sftp, entry.path, newPath);
       await _loadDir(currentPath);
     } catch (e) {
-      errorNotifier.value = 'Rename failed: ${e.toString()}';
-      loadingNotifier.value = false;
+      _set(errorNotifier, 'Rename failed: ${e.toString()}');
+      _set(loadingNotifier, false);
     }
   }
 
   Future<void> delete(SftpEntry entry) async {
     final sftp = _sftp;
     if (sftp == null) return;
-    loadingNotifier.value = true;
-    errorNotifier.value = null;
+    _set(loadingNotifier, true);
+    _set(errorNotifier, null);
     try {
       await _service.delete(sftp, entry.path, isDirectory: entry.isDirectory);
       await _loadDir(currentPath);
     } catch (e) {
-      errorNotifier.value = 'Delete failed: ${e.toString()}';
-      loadingNotifier.value = false;
+      _set(errorNotifier, 'Delete failed: ${e.toString()}');
+      _set(loadingNotifier, false);
     }
   }
 
   Future<void> _loadDir(String path) async {
     final sftp = _sftp;
     if (sftp == null) return;
-    loadingNotifier.value = true;
-    errorNotifier.value = null;
+    _set(loadingNotifier, true);
+    _set(errorNotifier, null);
     try {
       final entries = await _service.listDir(sftp, path);
-      currentPathNotifier.value = path;
-      entriesNotifier.value = entries;
+      _set(currentPathNotifier, path);
+      _set(entriesNotifier, entries);
     } catch (e) {
-      errorNotifier.value = 'Could not read directory: ${e.toString()}';
+      _set(errorNotifier, 'Could not read directory: ${e.toString()}');
     } finally {
-      loadingNotifier.value = false;
+      _set(loadingNotifier, false);
     }
   }
 
   void dispose() {
+    _disposed = true;
     _sftp?.close();
     entriesNotifier.dispose();
     currentPathNotifier.dispose();

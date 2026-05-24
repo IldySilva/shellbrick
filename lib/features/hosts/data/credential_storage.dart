@@ -3,6 +3,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 class CredentialStorage {
   static const _opts = MacOsOptions(
     accessibility: KeychainAccessibility.unlocked,
+    useDataProtectionKeyChain: false,
   );
 
   static const _storage = FlutterSecureStorage(mOptions: _opts);

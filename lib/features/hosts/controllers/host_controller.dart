@@ -7,9 +7,12 @@ class HostController {
   final _storage = HostLocalStorage();
   final _credentials = CredentialStorage();
   final hostsNotifier = ValueNotifier<List<SshHost>>([]);
+  final loadingNotifier = ValueNotifier<bool>(true);
 
   Future<void> load() async {
+    loadingNotifier.value = true;
     hostsNotifier.value = await _storage.loadHosts();
+    loadingNotifier.value = false;
   }
 
   Future<void> add(SshHost host) async {
@@ -41,5 +44,8 @@ class HostController {
     await update(host.copyWith(lastConnectedAt: DateTime.now()));
   }
 
-  void dispose() => hostsNotifier.dispose();
+  void dispose() {
+    hostsNotifier.dispose();
+    loadingNotifier.dispose();
+  }
 }

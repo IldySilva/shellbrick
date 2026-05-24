@@ -1,12 +1,134 @@
-# shellbrick
+# Shellbrick
 
-Shellbrick is an open-source SSH workspace focused on:
+A calm, open-source SSH workspace built for developers who value focus, speed, and native platform quality.
 
-- Minimalism
-- Native desktop experience
-- Fast workflows
-- Local-first architecture
-- Beautiful terminal UX
-- Deep Linux/macOS integration
+![License](https://img.shields.io/badge/license-MIT-blue)
+![Flutter](https://img.shields.io/badge/Flutter-3.x-blue)
+![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20iOS%20%7C%20Android-lightgrey)
 
-The goal is to become the most developer-friendly desktop SSH client for engineers who care about speed, simplicity, and control.
+---
+
+## What it is
+
+Shellbrick is a focused SSH workspace — not a generic DevOps dashboard. It provides:
+
+- **Host management** — store and organize your SSH hosts locally
+- **Integrated terminal** — full xterm-compatible sessions via `dartssh2`
+- **SFTP browser** — browse, upload, download, rename, and delete remote files
+- **Local port forwarding** — tunnel remote ports to localhost
+- **Command palette** — keyboard-first host search and navigation (`⌘K` / `Ctrl+K`)
+- **Secure credentials** — passwords and passphrases stored in the system keychain, never in plain text
+- **Local-first** — no accounts, no cloud sync, no telemetry
+
+Inspired by Linear, Raycast, Ghostty, and Warp.
+
+---
+
+## Platforms
+
+| Platform | Status     |
+|----------|------------|
+| macOS    | Supported  |
+| Linux    | Supported  |
+| iOS      | Supported  |
+| Android  | Supported  |
+| Windows  | Post-MVP   |
+
+---
+
+## Getting started
+
+### Requirements
+
+- Flutter 3.x (stable channel)
+- Dart 3.x
+- Xcode (macOS/iOS)
+- Android Studio or NDK (Android)
+
+### Install Flutter
+
+Follow the official guide: https://docs.flutter.dev/get-started/install
+
+### Clone and run
+
+```bash
+git clone https://github.com/your-username/shellbrick.git
+cd shellbrick
+flutter pub get
+flutter run -d macos       # macOS
+flutter run -d linux       # Linux
+flutter run -d ios         # iOS simulator or device
+flutter run -d android     # Android emulator or device
+```
+
+### macOS — signing for local development
+
+If you don't have an Apple Developer account, open the project in Xcode and set the signing identity to **Sign to Run Locally**:
+
+1. Open `macos/Runner.xcworkspace` in Xcode
+2. Select the **Runner** target → **Signing & Capabilities**
+3. Set **Signing Certificate** to **Sign to Run Locally**
+
+---
+
+## Development
+
+### Folder structure
+
+```
+lib/
+├── main.dart
+├── app/                    # App shell, theme, routes
+├── core/                   # Constants, exceptions, utilities
+├── features/
+│   ├── hosts/              # Host management
+│   ├── terminal/           # SSH terminal sessions
+│   ├── sftp/               # SFTP file browser
+│   ├── port_forwarding/    # Local port forwarding
+│   ├── command_palette/    # Command palette overlay
+│   └── settings/           # App settings
+└── shared/                 # Shared widgets and layouts
+```
+
+### State management
+
+Shellbrick uses plain `ValueNotifier` + `ValueListenableBuilder`. No Riverpod, Bloc, Provider, or GetX.
+
+### Key packages
+
+| Package | Purpose |
+|---------|---------|
+| `dartssh2` | SSH and SFTP client |
+| `xterm` | Terminal emulator widget |
+| `flutter_secure_storage` | Keychain/Keystore credential storage |
+| `shared_preferences` | Non-sensitive local settings |
+| `file_picker` | Private key file selection |
+| `window_manager` | Native window control (desktop only) |
+
+### Running analysis
+
+```bash
+flutter analyze
+flutter test
+```
+
+---
+
+## Security
+
+- Passwords and key passphrases are stored exclusively in the system keychain (`flutter_secure_storage`)
+- Private key file paths are stored locally — key contents are never copied or transmitted
+- No credentials are logged, printed, or sent anywhere
+- No telemetry, no analytics, no accounts
+
+---
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+---
+
+## License
+
+MIT — see [LICENSE](LICENSE).

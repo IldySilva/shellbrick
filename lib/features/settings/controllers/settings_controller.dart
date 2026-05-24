@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import '../../../app/app_theme.dart';
 import '../data/settings_storage.dart';
 
+// Shared notifier so ShellbrickApp can rebuild MaterialApp without coupling.
+final themeModeNotifier = ValueNotifier<ThemeMode>(ThemeMode.dark);
+
 const List<double> terminalFontSizes = [11.0, 12.0, 13.5, 14.0, 15.0, 16.0];
 
 const List<Color> accentColorPresets = [
@@ -22,9 +25,13 @@ class SettingsController {
   Future<void> load() async {
     fontSizeNotifier.value = await _storage.loadFontSize();
     final colorValue = await _storage.loadAccentColorValue();
-    if (colorValue != null) {
-      accentColorNotifier.value = Color(colorValue);
-    }
+    if (colorValue != null) accentColorNotifier.value = Color(colorValue);
+    themeModeNotifier.value = await _storage.loadThemeMode();
+  }
+
+  Future<void> setThemeMode(ThemeMode mode) async {
+    themeModeNotifier.value = mode;
+    await _storage.saveThemeMode(mode);
   }
 
   Future<void> setFontSize(double size) async {
@@ -41,6 +48,7 @@ class SettingsController {
     await _storage.clearAll();
     fontSizeNotifier.value = 13.5;
     accentColorNotifier.value = accentColorPresets.first;
+    themeModeNotifier.value = ThemeMode.dark;
     await _storage.saveFontSize(fontSizeNotifier.value);
   }
 

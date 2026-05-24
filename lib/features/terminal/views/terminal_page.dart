@@ -8,12 +8,14 @@ class TerminalPage extends StatelessWidget {
   final TerminalController controller;
   final double fontSize;
   final Future<void> Function(String id)? onCloseSession;
+  final Future<void> Function(String sessionId)? onReconnect;
 
   const TerminalPage({
     super.key,
     required this.controller,
     this.fontSize = 13.5,
     this.onCloseSession,
+    this.onReconnect,
   });
 
   @override
@@ -42,7 +44,14 @@ class TerminalPage extends StatelessWidget {
                 Expanded(
                   child: active == null
                       ? const _EmptyTerminalState()
-                      : TerminalWidget(key: ValueKey(active.id), session: active, fontSize: fontSize),
+                      : TerminalWidget(
+                          key: ValueKey(active.id),
+                          session: active,
+                          fontSize: fontSize,
+                          onReconnect: onReconnect == null
+                              ? null
+                              : () => onReconnect!(active.id),
+                        ),
                 ),
               ],
             );

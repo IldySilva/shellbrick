@@ -57,7 +57,6 @@ class TerminalController {
       // terminal → SSH
       xterm.onOutput = (data) => shellSession.stdin.add(utf8.encode(data));
 
-      // PTY resize
       xterm.onResize = (width, height, pixelWidth, pixelHeight) {
         shellSession.resizeTerminal(width, height);
       };

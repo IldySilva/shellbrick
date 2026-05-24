@@ -36,6 +36,7 @@ class SettingsPage extends StatelessWidget {
         _Section(
           title: 'Appearance',
           children: [
+            _ThemeModeSetting(controller: controller),
             _AccentColorSetting(controller: controller),
           ],
         ),
@@ -190,6 +191,64 @@ class _FontSizeSetting extends StatelessWidget {
                 ),
               );
             }).toList(),
+          ),
+        );
+      },
+    );
+  }
+}
+
+// ── Theme mode ────────────────────────────────────────────────────────────────
+
+class _ThemeModeSetting extends StatelessWidget {
+  final SettingsController controller;
+  const _ThemeModeSetting({required this.controller});
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: themeModeNotifier,
+      builder: (context, mode, _) {
+        final isDark = mode == ThemeMode.dark;
+        return _SettingRow(
+          label: 'Appearance',
+          description: 'Choose between dark and light mode.',
+          trailing: GestureDetector(
+            onTap: () => controller.setThemeMode(
+              isDark ? ThemeMode.light : ThemeMode.dark,
+            ),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              width: 48,
+              height: 26,
+              decoration: BoxDecoration(
+                color: isDark
+                    ? AppColors.accent.withValues(alpha: 0.9)
+                    : AppColors.border,
+                borderRadius: BorderRadius.circular(13),
+              ),
+              child: AnimatedAlign(
+                duration: const Duration(milliseconds: 180),
+                curve: Curves.easeInOut,
+                alignment: isDark ? Alignment.centerRight : Alignment.centerLeft,
+                child: Padding(
+                  padding: const EdgeInsets.all(3),
+                  child: Container(
+                    width: 20,
+                    height: 20,
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      isDark ? Icons.dark_mode : Icons.light_mode,
+                      size: 12,
+                      color: isDark ? AppColors.accent : AppColors.textMuted,
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ),
         );
       },

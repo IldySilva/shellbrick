@@ -4,13 +4,13 @@
 
 ## Repository Setup
 
-- [ ] Create GitHub repository
-- [ ] Configure `.gitignore`
-- [ ] Configure LICENSE
-- [ ] Create README
-- [ ] Define contribution guidelines
-- [ ] Create issue templates
-- [ ] Create PR template
+- [x] Create GitHub repository
+- [x] Configure `.gitignore`
+- [x] Configure LICENSE
+- [x] Create README
+- [x] Define contribution guidelines
+- [x] Create issue templates
+- [x] Create PR template
 
 ---
 
@@ -147,7 +147,7 @@
 - [x] Create host list page
 - [x] Render host cards
 - [x] Add empty state
-- [ ] Add loading state
+- [x] Add loading state
 - [x] Add search functionality
 - [x] Add favorites
 - [x] Add recent connections
@@ -204,7 +204,7 @@
 - [x] Connect to SSH host
 - [x] Disconnect session
 - [x] Handle SSH errors
-- [ ] Handle reconnect logic
+- [x] Handle reconnect logic
 
 ---
 
@@ -267,28 +267,28 @@
 
 ## UI
 
-- [ ] Create command palette modal
-- [ ] Add search field
-- [ ] Add keyboard navigation
-- [ ] Add fuzzy matching
+- [x] Create command palette modal
+- [x] Add search field
+- [x] Add keyboard navigation
+- [x] Add fuzzy matching
 
 ---
 
 ## Actions
 
-- [ ] Search hosts
-- [ ] Connect to host
-- [ ] Open recent host
-- [ ] Open settings
-- [ ] Create new host
+- [x] Search hosts
+- [x] Connect to host
+- [x] Open recent host
+- [x] Open settings
+- [x] Create new host
 
 ---
 
 ## Keyboard Shortcuts
 
-- [ ] CMD + K on macOS
-- [ ] CTRL + K on Linux
-- [ ] ESC to close palette
+- [x] CMD + K on macOS
+- [x] CTRL + K on Linux
+- [x] ESC to close palette
 
 ---
 
@@ -316,7 +316,7 @@
 
 ## Settings Storage
 
-- [ ] Persist theme mode
+- [x] Persist theme mode
 - [x] Persist font size
 - [x] Persist window preferences
 
@@ -325,7 +325,7 @@
 ## Settings UI
 
 - [x] Create settings page
-- [ ] Theme selection
+- [x] Theme selection
 - [x] Accent color selection
 - [x] Terminal font size setting
 - [x] Clear local data action
@@ -382,37 +382,37 @@
 
 ## Animations
 
-- [ ] Add page transitions
-- [ ] Add hover animations
-- [ ] Add modal animations
-- [ ] Add focus animations
+- [x] Add page transitions
+- [x] Add hover animations
+- [x] Add modal animations
+- [x] Add focus animations
 
 ---
 
 ## Empty States
 
-- [ ] No hosts
-- [ ] No favorites
-- [ ] No recent sessions
-- [ ] No search results
+- [x] No hosts
+- [x] No favorites
+- [x] No recent sessions
+- [x] No search results
 
 ---
 
 ## Loading States
 
-- [ ] SSH connecting
-- [ ] SFTP loading
-- [ ] Host loading
-- [ ] Terminal initializing
+- [x] SSH connecting
+- [x] SFTP loading
+- [x] Host loading
+- [x] Terminal initializing
 
 ---
 
 ## Error States
 
-- [ ] Connection failed
-- [ ] Invalid credentials
-- [ ] SSH timeout
-- [ ] File upload failed
+- [x] Connection failed
+- [x] Invalid credentials
+- [x] SSH timeout
+- [x] File upload failed
 
 ---
 
@@ -513,14 +513,14 @@
 
 The MVP is complete when users can:
 
-- [ ] Add SSH hosts
-- [ ] Save hosts locally
-- [ ] Authenticate securely
-- [ ] Open SSH terminal sessions
-- [ ] Manage multiple sessions
-- [ ] Use keyboard-first workflows
-- [ ] Use SFTP
-- [ ] Use port forwarding
+- [x] Add SSH hosts
+- [x] Save hosts locally
+- [x] Authenticate securely
+- [x] Open SSH terminal sessions
+- [x] Manage multiple sessions
+- [x] Use keyboard-first workflows
+- [x] Use SFTP
+- [x] Use port forwarding
 - [ ] Use the app daily reliably
 
 ---

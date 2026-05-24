@@ -52,4 +52,33 @@ abstract final class AppTheme {
       ),
     );
   }
+
+  static ThemeData light() {
+    const bg = Color(0xFFF5F6F8);
+    const surface = Color(0xFFFFFFFF);
+    const border = Color(0xFFE2E8F0);
+    const text = Color(0xFF1A202C);
+    const muted = Color(0xFF718096);
+
+    return ThemeData(
+      brightness: Brightness.light,
+      scaffoldBackgroundColor: bg,
+      colorScheme: const ColorScheme.light(
+        surface: surface,
+        primary: AppColors.accent,
+        onPrimary: Colors.white,
+        onSurface: text,
+        outline: border,
+      ),
+      textTheme: const TextTheme(
+        bodyLarge: TextStyle(color: text, fontSize: 14),
+        bodyMedium: TextStyle(color: text, fontSize: 13),
+        bodySmall: TextStyle(color: muted, fontSize: 12),
+        titleMedium: TextStyle(color: text, fontSize: 14, fontWeight: FontWeight.w600),
+        labelSmall: TextStyle(color: muted, fontSize: 11),
+      ),
+      dividerColor: border,
+      dividerTheme: const DividerThemeData(color: border, thickness: 1, space: 1),
+    );
+  }
 }

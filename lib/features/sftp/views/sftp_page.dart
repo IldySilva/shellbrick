@@ -51,7 +51,29 @@ class _SftpPageState extends State<SftpPage> {
     final path = result.files.single.path!;
     final name = result.files.single.name;
     final data = await File(path).readAsBytes();
-    await _controller.upload(name, data);
+    try {
+      await _controller.upload(name, data);
+    } catch (_) {
+      if (mounted) _showError('Upload failed. Check permissions and try again.');
+    }
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style: const TextStyle(color: Color(0xFFE6EAF2), fontSize: 13),
+        ),
+        backgroundColor: const Color(0xFF151922),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+          side: const BorderSide(color: Color(0xFF232734)),
+        ),
+        duration: const Duration(seconds: 4),
+      ),
+    );
   }
 
   Future<void> _handleDownload(SftpEntry entry) async {

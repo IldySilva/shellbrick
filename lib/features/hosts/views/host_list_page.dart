@@ -88,46 +88,57 @@ class _HostListPageState extends State<HostListPage> {
   Widget build(BuildContext context) {
     return Focus(
       onKeyEvent: _handleKey,
-      child: ValueListenableBuilder<List<SshHost>>(
-        valueListenable: widget.controller.hostsNotifier,
-        builder: (context, hosts, _) {
-          final filtered = _filtered(hosts);
-          final ordered = _orderedFiltered(hosts);
-          final favorites = filtered.where((h) => h.isFavorite).toList();
-          final others = filtered.where((h) => !h.isFavorite).toList();
-          final focusedId = (_focusedIndex >= 0 && _focusedIndex < ordered.length)
-              ? ordered[_focusedIndex].id
-              : null;
+      child: ValueListenableBuilder<bool>(
+        valueListenable: widget.controller.loadingNotifier,
+        builder: (context, loading, _) {
+          if (loading) return const _LoadingState();
+          return ValueListenableBuilder<List<SshHost>>(
+            valueListenable: widget.controller.hostsNotifier,
+            builder: (context, hosts, _) {
+              final filtered = _filtered(hosts);
+              final ordered = _orderedFiltered(hosts);
+              final favorites = filtered.where((h) => h.isFavorite).toList();
+              final others = filtered.where((h) => !h.isFavorite).toList();
+              final noFavorites = hosts.isNotEmpty &&
+                  hosts.every((h) => !h.isFavorite) &&
+                  _query.isEmpty;
+              final focusedId =
+                  (_focusedIndex >= 0 && _focusedIndex < ordered.length)
+                      ? ordered[_focusedIndex].id
+                      : null;
 
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _Header(count: hosts.length, onNewHost: () => _openForm()),
-              _SearchBar(
-                controller: _searchController,
-                focusNode: _searchFocus,
-                onChanged: (q) => setState(() {
-                  _query = q;
-                  _focusedIndex = -1;
-                }),
-              ),
-              Expanded(
-                child: hosts.isEmpty
-                    ? _EmptyState(onAdd: () => _openForm())
-                    : filtered.isEmpty
-                    ? const _NoResults()
-                    : _HostList(
-                        favorites: favorites,
-                        others: others,
-                        focusedId: focusedId,
-                        onConnect: _onConnect,
-                        onEdit: _openForm,
-                        onDelete: _confirmDelete,
-                        onToggleFavorite: (h) =>
-                            widget.controller.toggleFavorite(h.id),
-                      ),
-              ),
-            ],
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _Header(count: hosts.length, onNewHost: () => _openForm()),
+                  _SearchBar(
+                    controller: _searchController,
+                    focusNode: _searchFocus,
+                    onChanged: (q) => setState(() {
+                      _query = q;
+                      _focusedIndex = -1;
+                    }),
+                  ),
+                  Expanded(
+                    child: hosts.isEmpty
+                        ? _EmptyState(onAdd: () => _openForm())
+                        : filtered.isEmpty
+                        ? const _NoResults()
+                        : _HostList(
+                            favorites: favorites,
+                            others: others,
+                            noFavoritesHint: noFavorites,
+                            focusedId: focusedId,
+                            onConnect: _onConnect,
+                            onEdit: _openForm,
+                            onDelete: _confirmDelete,
+                            onToggleFavorite: (h) =>
+                                widget.controller.toggleFavorite(h.id),
+                          ),
+                  ),
+                ],
+              );
+            },
           );
         },
       ),
@@ -303,9 +314,28 @@ class _SearchBar extends StatelessWidget {
   }
 }
 
+class _LoadingState extends StatelessWidget {
+  const _LoadingState();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: SizedBox(
+        width: 20,
+        height: 20,
+        child: CircularProgressIndicator(
+          strokeWidth: 2,
+          color: AppColors.accent,
+        ),
+      ),
+    );
+  }
+}
+
 class _HostList extends StatelessWidget {
   final List<SshHost> favorites;
   final List<SshHost> others;
+  final bool noFavoritesHint;
   final String? focusedId;
   final void Function(SshHost) onConnect;
   final void Function(SshHost) onEdit;
@@ -320,6 +350,7 @@ class _HostList extends StatelessWidget {
     required this.onEdit,
     required this.onDelete,
     required this.onToggleFavorite,
+    this.noFavoritesHint = false,
   });
 
   @override
@@ -332,6 +363,32 @@ class _HostList extends StatelessWidget {
         AppSpacing.s24,
       ),
       children: [
+        if (noFavoritesHint)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.s24,
+              AppSpacing.s8,
+              AppSpacing.s24,
+              AppSpacing.s4,
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.star_border,
+                  size: 12,
+                  color: AppColors.textMuted.withValues(alpha: 0.5),
+                ),
+                const SizedBox(width: AppSpacing.s4),
+                Text(
+                  'Star a host to pin it to Favorites.',
+                  style: TextStyle(
+                    color: AppColors.textMuted.withValues(alpha: 0.6),
+                    fontSize: 11.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
         if (favorites.isNotEmpty) ...[
           _SectionHeader(label: 'Favorites', count: favorites.length),
           ...favorites.map(
