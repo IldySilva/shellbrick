@@ -3,7 +3,8 @@ import 'package:xterm/xterm.dart';
 import '../../../app/app_theme.dart';
 import '../models/terminal_session.dart';
 
-const _terminalTheme = TerminalTheme(
+// Fallback used when no theme is provided.
+const _kDefaultTheme = TerminalTheme(
   cursor: Color(0xFFE6EAF2),
   selection: Color(0x445E81F4),
   foreground: Color(0xFFE6EAF2),
@@ -32,13 +33,17 @@ const _terminalTheme = TerminalTheme(
 class TerminalWidget extends StatelessWidget {
   final TerminalSession session;
   final double fontSize;
+  final TerminalTheme terminalTheme;
   final VoidCallback? onReconnect;
+  final bool isFocused;
 
   const TerminalWidget({
     super.key,
     required this.session,
     this.fontSize = 12,
+    this.terminalTheme = _kDefaultTheme,
     this.onReconnect,
+    this.isFocused = true,
   });
 
   @override
@@ -48,6 +53,8 @@ class TerminalWidget extends StatelessWidget {
       SessionStatus.connected => _ConnectedView(
         session: session,
         fontSize: fontSize,
+        terminalTheme: terminalTheme,
+        autofocus: isFocused,
       ),
       SessionStatus.disconnected => _EndedView(
         host: session.host.hostname,
@@ -64,15 +71,23 @@ class TerminalWidget extends StatelessWidget {
 class _ConnectedView extends StatelessWidget {
   final TerminalSession session;
   final double fontSize;
-  const _ConnectedView({required this.session, required this.fontSize});
+  final TerminalTheme terminalTheme;
+  final bool autofocus;
+
+  const _ConnectedView({
+    required this.session,
+    required this.fontSize,
+    required this.terminalTheme,
+    this.autofocus = true,
+  });
 
   @override
   Widget build(BuildContext context) {
     return TerminalView(
       session.xterm!,
-      theme: _terminalTheme,
+      theme: terminalTheme,
       textStyle: TerminalStyle(fontSize: fontSize, fontFamily: 'monospace'),
-      autofocus: true,
+      autofocus: autofocus,
       padding: const EdgeInsets.all(AppSpacing.s8),
     );
   }

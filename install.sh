@@ -1,12 +1,12 @@
 #!/bin/bash
 # Xell installer
-# Usage: curl -fsSL https://raw.githubusercontent.com/your-org/xell/main/install.sh | bash
+# Usage: curl -fsSL https://raw.githubusercontent.com/ildysilva/xell/main/install.sh | bash
 # Or:    ./install.sh [--version v0.1.0]
 
 set -euo pipefail
 
 # ── Config ────────────────────────────────────────────────────────────────────
-REPO="your-org/xell"   # TODO: update when repo is public
+REPO="ildysilva/xell"   
 APP_NAME="Xell"
 BIN_NAME="xell"
 INSTALL_VERSION=""     # empty = latest

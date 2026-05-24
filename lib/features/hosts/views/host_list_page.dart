@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../app/app_theme.dart';
@@ -5,6 +7,7 @@ import '../controllers/host_controller.dart';
 import '../models/ssh_host.dart';
 import '../widgets/host_row.dart';
 import 'host_form_dialog.dart';
+import 'host_form_page.dart';
 
 class HostListPage extends StatefulWidget {
   final HostController controller;
@@ -68,10 +71,17 @@ class _HostListPageState extends State<HostListPage> {
   }
 
   void _openForm([SshHost? host]) {
-    showDialog(
-      context: context,
-      builder: (_) => HostFormDialog(controller: widget.controller, host: host),
-    );
+    if (Platform.isIOS || Platform.isAndroid) {
+      Navigator.of(context).push(MaterialPageRoute(
+        builder: (_) => HostFormPage(controller: widget.controller, host: host),
+      ));
+    } else {
+      showDialog(
+        context: context,
+        builder: (_) =>
+            HostFormDialog(controller: widget.controller, host: host),
+      );
+    }
   }
 
   Future<void> _confirmDelete(SshHost host) async {

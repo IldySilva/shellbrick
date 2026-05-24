@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../terminal/models/terminal_theme_presets.dart';
 
 class SettingsStorage {
   static const _fontSizeKey = 'xell.terminalFontSize';
   static const _accentColorKey = 'xell.accentColor';
   static const _themeModeKey = 'xell.themeMode';
+  static const _terminalThemeKey = 'xell.terminalTheme';
 
   Future<ThemeMode> loadThemeMode() async {
     final prefs = await SharedPreferences.getInstance();
@@ -38,6 +40,20 @@ class SettingsStorage {
   Future<void> saveAccentColorValue(int colorValue) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(_accentColorKey, colorValue);
+  }
+
+  Future<TerminalThemeName> loadTerminalTheme() async {
+    final prefs = await SharedPreferences.getInstance();
+    final value = prefs.getString(_terminalThemeKey);
+    return TerminalThemeName.values.firstWhere(
+      (t) => t.name == value,
+      orElse: () => TerminalThemeName.dark,
+    );
+  }
+
+  Future<void> saveTerminalTheme(TerminalThemeName theme) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_terminalThemeKey, theme.name);
   }
 
   Future<void> clearAll() async {

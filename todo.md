@@ -485,8 +485,8 @@
 
 ## Branding
 
-- [ ] Finalize logo
-- [ ] Finalize app icon
+- [x] Finalize logo
+- [x] Finalize app icon
 - [ ] Finalize screenshots
 
 ---

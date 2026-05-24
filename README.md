@@ -48,13 +48,13 @@ Inspired by Linear, Raycast, Ghostty, and Warp.
 ### One-line install (macOS and Linux)
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/your-org/xell/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/ildysilva/xell/main/install.sh | bash
 ```
 
 Or pin to a specific version:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/your-org/xell/main/install.sh | bash -s -- --version v0.1.0
+curl -fsSL https://raw.githubusercontent.com/ildysilva/xell/main/install.sh | bash -s -- --version v0.1.0
 ```
 
 **macOS** — installs to `/Applications/Xell.app`. Removes the Gatekeeper quarantine flag automatically so the app opens without friction (even when unsigned during early releases).
@@ -63,7 +63,7 @@ curl -fsSL https://raw.githubusercontent.com/your-org/xell/main/install.sh | bas
 
 ### Manual install
 
-Download the latest release from [GitHub Releases](https://github.com/your-org/xell/releases):
+Download the latest release from [GitHub Releases](https://github.com/ildysilva/xell/releases):
 
 | Platform | File |
 |---|---|

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../app/app_theme.dart';
+import '../../terminal/models/terminal_theme_presets.dart';
 import '../controllers/settings_controller.dart';
 
 class SettingsPage extends StatelessWidget {
@@ -30,6 +31,7 @@ class SettingsPage extends StatelessWidget {
           title: 'Terminal',
           children: [
             _FontSizeSetting(controller: controller),
+            _TerminalThemeSetting(controller: controller),
           ],
         ),
         const SizedBox(height: AppSpacing.s32),
@@ -187,6 +189,73 @@ class _FontSizeSetting extends StatelessWidget {
                       fontSize: 11.5,
                       fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
                     ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        );
+      },
+    );
+  }
+}
+
+// ── Terminal theme ────────────────────────────────────────────────────────────
+
+class _TerminalThemeSetting extends StatelessWidget {
+  final SettingsController controller;
+  const _TerminalThemeSetting({required this.controller});
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<TerminalThemeName>(
+      valueListenable: controller.terminalThemeNotifier,
+      builder: (context, current, _) {
+        return _SettingRow(
+          label: 'Terminal Theme',
+          description: 'Color scheme for the terminal.',
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: terminalThemePresets.map((preset) {
+              final selected = preset.name == current;
+              return Tooltip(
+                message: preset.name.label,
+                child: GestureDetector(
+                  onTap: () => controller.setTerminalTheme(preset.name),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 120),
+                    margin: const EdgeInsets.only(left: AppSpacing.s8),
+                    width: 24,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      color: preset.background,
+                      borderRadius: BorderRadius.circular(5),
+                      border: Border.all(
+                        color: selected ? AppColors.text : AppColors.border,
+                        width: selected ? 2 : 1,
+                      ),
+                      boxShadow: selected
+                          ? [
+                              BoxShadow(
+                                color: preset.accent.withValues(alpha: 0.4),
+                                blurRadius: 4,
+                                spreadRadius: 1,
+                              ),
+                            ]
+                          : null,
+                    ),
+                    child: selected
+                        ? Center(
+                            child: Container(
+                              width: 6,
+                              height: 6,
+                              decoration: BoxDecoration(
+                                color: preset.accent,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                          )
+                        : null,
                   ),
                 ),
               );

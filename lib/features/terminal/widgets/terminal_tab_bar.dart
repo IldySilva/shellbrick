@@ -5,8 +5,12 @@ import '../models/terminal_session.dart';
 class TerminalTabBar extends StatelessWidget {
   final List<TerminalSession> sessions;
   final String? activeSessionId;
+  final Axis? splitAxis;
   final ValueChanged<String> onSelectSession;
   final ValueChanged<String> onCloseSession;
+  final VoidCallback? onSplitHorizontal;
+  final VoidCallback? onSplitVertical;
+  final VoidCallback? onCloseSplit;
 
   const TerminalTabBar({
     super.key,
@@ -14,6 +18,10 @@ class TerminalTabBar extends StatelessWidget {
     required this.activeSessionId,
     required this.onSelectSession,
     required this.onCloseSession,
+    this.splitAxis,
+    this.onSplitHorizontal,
+    this.onSplitVertical,
+    this.onCloseSplit,
   });
 
   @override
@@ -24,22 +32,141 @@ class TerminalTabBar extends StatelessWidget {
         color: AppColors.surface,
         border: Border(bottom: BorderSide(color: AppColors.border)),
       ),
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        children: sessions
-            .map(
-              (s) => _Tab(
-                session: s,
-                isActive: s.id == activeSessionId,
-                onTap: () => onSelectSession(s.id),
-                onClose: () => onCloseSession(s.id),
-              ),
-            )
-            .toList(),
+      child: Row(
+        children: [
+          Expanded(
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              children: sessions
+                  .map(
+                    (s) => _Tab(
+                      session: s,
+                      isActive: s.id == activeSessionId,
+                      onTap: () => onSelectSession(s.id),
+                      onClose: () => onCloseSession(s.id),
+                    ),
+                  )
+                  .toList(),
+            ),
+          ),
+          _SplitControls(
+            splitAxis: splitAxis,
+            onSplitHorizontal: onSplitHorizontal,
+            onSplitVertical: onSplitVertical,
+            onCloseSplit: onCloseSplit,
+          ),
+        ],
       ),
     );
   }
 }
+
+// ── Split controls ────────────────────────────────────────────────────────────
+
+class _SplitControls extends StatelessWidget {
+  final Axis? splitAxis;
+  final VoidCallback? onSplitHorizontal;
+  final VoidCallback? onSplitVertical;
+  final VoidCallback? onCloseSplit;
+
+  const _SplitControls({
+    this.splitAxis,
+    this.onSplitHorizontal,
+    this.onSplitVertical,
+    this.onCloseSplit,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s8),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (splitAxis != null) ...[
+            _SplitIconButton(
+              icon: Icons.close,
+              tooltip: 'Close split',
+              onTap: onCloseSplit,
+            ),
+            const SizedBox(width: 2),
+            Container(width: 1, height: 14, color: AppColors.border),
+            const SizedBox(width: 2),
+          ],
+          _SplitIconButton(
+            icon: Icons.vertical_split_outlined,
+            tooltip: 'Split right  ⌘D',
+            onTap: onSplitHorizontal,
+            active: splitAxis == Axis.horizontal,
+          ),
+          const SizedBox(width: 2),
+          _SplitIconButton(
+            icon: Icons.horizontal_split_outlined,
+            tooltip: 'Split down  ⌘⇧D',
+            onTap: onSplitVertical,
+            active: splitAxis == Axis.vertical,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SplitIconButton extends StatefulWidget {
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback? onTap;
+  final bool active;
+
+  const _SplitIconButton({
+    required this.icon,
+    required this.tooltip,
+    this.onTap,
+    this.active = false,
+  });
+
+  @override
+  State<_SplitIconButton> createState() => _SplitIconButtonState();
+}
+
+class _SplitIconButtonState extends State<_SplitIconButton> {
+  bool _hovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: widget.tooltip,
+      child: MouseRegion(
+        onEnter: (_) => setState(() => _hovered = true),
+        onExit: (_) => setState(() => _hovered = false),
+        cursor: SystemMouseCursors.click,
+        child: GestureDetector(
+          onTap: widget.onTap,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 100),
+            width: 26,
+            height: 26,
+            decoration: BoxDecoration(
+              color: widget.active
+                  ? AppColors.accent.withValues(alpha: 0.15)
+                  : _hovered
+                  ? AppColors.border.withValues(alpha: 0.8)
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(5),
+            ),
+            child: Icon(
+              widget.icon,
+              size: 14,
+              color: widget.active ? AppColors.accent : AppColors.textMuted,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── Tab ───────────────────────────────────────────────────────────────────────
 
 class _Tab extends StatefulWidget {
   final TerminalSession session;
@@ -122,8 +249,8 @@ class _TabState extends State<_Tab> {
                 child: AnimatedOpacity(
                   opacity: _hovered || widget.isActive ? 1.0 : 0.0,
                   duration: const Duration(milliseconds: 120),
-                  child: Padding(
-                    padding: const EdgeInsets.all(2),
+                  child: const Padding(
+                    padding: EdgeInsets.all(2),
                     child: Icon(
                       Icons.close,
                       size: 12,

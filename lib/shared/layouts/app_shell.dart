@@ -17,6 +17,9 @@ import '../../features/settings/views/settings_page.dart';
 import '../../features/sftp/views/sftp_page.dart';
 import '../../features/command_palette/views/command_palette.dart';
 import '../../features/hosts/views/host_form_dialog.dart';
+import '../../features/hosts/views/host_form_page.dart';
+import '../../features/hosts/views/ssh_config_import_dialog.dart';
+import '../../features/terminal/models/terminal_theme_presets.dart';
 import '../../features/terminal/views/credential_prompt_dialog.dart';
 import '../../features/terminal/views/terminal_page.dart';
 import 'sidebar.dart';
@@ -133,6 +136,15 @@ class _AppShellState extends State<AppShell> with WindowListener {
           () => _selectTab(2),
       SingleActivator(LogicalKeyboardKey.digit4, meta: mac, control: !mac):
           () => _selectTab(3),
+      // Split pane shortcuts
+      SingleActivator(LogicalKeyboardKey.keyD, meta: mac, control: !mac):
+          _terminalController.splitHorizontal,
+      SingleActivator(
+        LogicalKeyboardKey.keyD,
+        meta: mac,
+        control: !mac,
+        shift: true,
+      ): _terminalController.splitVertical,
     };
   }
 
@@ -159,12 +171,22 @@ class _AppShellState extends State<AppShell> with WindowListener {
         onCreateHost: () {
           setState(() => _selectedIndex = 0);
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            showDialog<void>(
-              context: context,
-              builder: (_) => HostFormDialog(controller: _hostController),
-            );
+            if (Platform.isIOS || Platform.isAndroid) {
+              Navigator.of(context).push(MaterialPageRoute(
+                builder: (_) => HostFormPage(controller: _hostController),
+              ));
+            } else {
+              showDialog<void>(
+                context: context,
+                builder: (_) => HostFormDialog(controller: _hostController),
+              );
+            }
           });
         },
+        onImportSshConfig: _isDesktop ? _showSshConfigImport : null,
+        onSplitHorizontal: _isDesktop ? _terminalController.splitHorizontal : null,
+        onSplitVertical: _isDesktop ? _terminalController.splitVertical : null,
+        onCloseSplit: _isDesktop ? _terminalController.closeSplit : null,
       ),
     );
   }
@@ -229,6 +251,17 @@ class _AppShellState extends State<AppShell> with WindowListener {
     } catch (_) {}
   }
 
+  void _showSshConfigImport() {
+    showDialog<int>(
+      context: context,
+      builder: (_) => SshConfigImportDialog(controller: _hostController),
+    ).then((count) {
+      if (count != null && count > 0 && mounted) {
+        _showSnackbar('Imported $count host${count == 1 ? '' : 's'} from ~/.ssh/config');
+      }
+    });
+  }
+
   void _showSnackbar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -253,15 +286,20 @@ class _AppShellState extends State<AppShell> with WindowListener {
     0 => HostListPage(controller: _hostController, onConnect: _handleConnect),
     1 => ValueListenableBuilder<double>(
       valueListenable: _settingsController.fontSizeNotifier,
-      builder: (context, fontSize, child) => TerminalPage(
-        controller: _terminalController,
-        fontSize: fontSize,
-        onCloseSession: (id) async {
-          await _terminalController.closeSession(id);
-          await _tunnelController.closeForSession(id);
-        },
-        onReconnect: _handleReconnect,
-      ),
+      builder: (context, fontSize, _) =>
+          ValueListenableBuilder<TerminalThemeName>(
+            valueListenable: _settingsController.terminalThemeNotifier,
+            builder: (context, themeName, _) => TerminalPage(
+              controller: _terminalController,
+              fontSize: fontSize,
+              terminalTheme: getTerminalThemePreset(themeName).theme,
+              onCloseSession: (id) async {
+                await _terminalController.closeSession(id);
+                await _tunnelController.closeForSession(id);
+              },
+              onReconnect: _handleReconnect,
+            ),
+          ),
     ),
     2 => SftpPage(terminalController: _terminalController),
     3 => TunnelPage(

@@ -26,6 +26,10 @@ class CommandPalette extends StatefulWidget {
   final ValueChanged<SshHost> onConnect;
   final VoidCallback onOpenSettings;
   final VoidCallback onCreateHost;
+  final VoidCallback? onImportSshConfig;
+  final VoidCallback? onSplitHorizontal;
+  final VoidCallback? onSplitVertical;
+  final VoidCallback? onCloseSplit;
 
   const CommandPalette({
     super.key,
@@ -33,6 +37,10 @@ class CommandPalette extends StatefulWidget {
     required this.onConnect,
     required this.onOpenSettings,
     required this.onCreateHost,
+    this.onImportSshConfig,
+    this.onSplitHorizontal,
+    this.onSplitVertical,
+    this.onCloseSplit,
   });
 
   @override
@@ -133,6 +141,34 @@ class _CommandPaletteState extends State<CommandPalette> {
         keys: ['create host', 'new host', 'add host', 'add server'],
         fn: widget.onCreateHost,
       ),
+      if (widget.onImportSshConfig != null)
+        (
+          label: 'Import SSH Config',
+          icon: Icons.download_outlined,
+          keys: ['import', 'ssh config', 'import hosts', '~/.ssh/config'],
+          fn: widget.onImportSshConfig!,
+        ),
+      if (widget.onSplitHorizontal != null)
+        (
+          label: 'Split Pane Right',
+          icon: Icons.vertical_split_outlined,
+          keys: ['split', 'split right', 'split horizontal', 'pane'],
+          fn: widget.onSplitHorizontal!,
+        ),
+      if (widget.onSplitVertical != null)
+        (
+          label: 'Split Pane Down',
+          icon: Icons.horizontal_split_outlined,
+          keys: ['split', 'split down', 'split vertical', 'pane'],
+          fn: widget.onSplitVertical!,
+        ),
+      if (widget.onCloseSplit != null)
+        (
+          label: 'Close Split',
+          icon: Icons.close_fullscreen_outlined,
+          keys: ['close split', 'unsplit', 'single pane'],
+          fn: widget.onCloseSplit!,
+        ),
     ];
 
     for (final s in statics) {
