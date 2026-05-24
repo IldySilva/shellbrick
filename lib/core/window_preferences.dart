@@ -5,10 +5,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:window_manager/window_manager.dart';
 
 abstract final class WindowPreferences {
-  static const _keyWidth = 'shellbrick.window.width';
-  static const _keyHeight = 'shellbrick.window.height';
-  static const _keyX = 'shellbrick.window.x';
-  static const _keyY = 'shellbrick.window.y';
+  static const _keyWidth = 'xell.window.width';
+  static const _keyHeight = 'xell.window.height';
+  static const _keyX = 'xell.window.x';
+  static const _keyY = 'xell.window.y';
 
   static bool get _isDesktop =>
       Platform.isMacOS || Platform.isLinux || Platform.isWindows;

@@ -9,10 +9,10 @@ class CredentialStorage {
   static const _storage = FlutterSecureStorage(mOptions: _opts);
 
   static String _passwordKey(String hostId) =>
-      'shellbrick.host.$hostId.password';
+      'xell.host.$hostId.password';
 
   static String _passphraseKey(String hostId) =>
-      'shellbrick.host.$hostId.passphrase';
+      'xell.host.$hostId.passphrase';
 
   Future<String?> loadPassword(String hostId) =>
       _storage.read(key: _passwordKey(hostId), mOptions: _opts);

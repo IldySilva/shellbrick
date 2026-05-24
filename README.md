@@ -1,4 +1,4 @@
-# Shellbrick
+# Xell
 
 A calm, open-source SSH workspace built for developers who value focus, speed, and native platform quality.
 
@@ -10,7 +10,7 @@ A calm, open-source SSH workspace built for developers who value focus, speed, a
 
 ## What it is
 
-Shellbrick is an open-source SSH workspace on its way to becoming a full DevOps toolkit. It provides:
+Xell is an open-source SSH workspace on its way to becoming a full DevOps toolkit. It provides:
 
 - **Host management** — store and organize your SSH hosts locally
 - **Integrated terminal** — full xterm-compatible sessions via `dartssh2`
@@ -43,7 +43,41 @@ Inspired by Linear, Raycast, Ghostty, and Warp.
 
 ---
 
-## Getting started
+## Installation
+
+### One-line install (macOS and Linux)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/your-org/xell/main/install.sh | bash
+```
+
+Or pin to a specific version:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/your-org/xell/main/install.sh | bash -s -- --version v0.1.0
+```
+
+**macOS** — installs to `/Applications/Xell.app`. Removes the Gatekeeper quarantine flag automatically so the app opens without friction (even when unsigned during early releases).
+
+**Linux** — installs the full bundle to `~/.local/share/xell/` and links the binary to `~/.local/bin/xell`.
+
+### Manual install
+
+Download the latest release from [GitHub Releases](https://github.com/your-org/xell/releases):
+
+| Platform | File |
+|---|---|
+| macOS | `Xell-v*-macos.dmg` |
+| Linux x64 | `Xell-v*-linux-x64.tar.gz` |
+
+Homebrew cask (coming soon — requires notarized build):
+```bash
+brew install --cask xell
+```
+
+---
+
+## Building from source
 
 ### Requirements
 
@@ -59,13 +93,21 @@ Follow the official guide: https://docs.flutter.dev/get-started/install
 ### Clone and run
 
 ```bash
-git clone https://github.com/your-username/shellbrick.git
-cd shellbrick
+git clone https://github.com/your-username/xell.git
+cd xell
 flutter pub get
 flutter run -d macos       # macOS
 flutter run -d linux       # Linux
 flutter run -d ios         # iOS simulator or device
 flutter run -d android     # Android emulator or device
+```
+
+### Release builds
+
+```bash
+./scripts/build_macos.sh        # → dist/Xell-v*.dmg
+./scripts/build_linux.sh        # → dist/Xell-v*-linux-x64.tar.gz
+./scripts/release.sh 0.1.0      # tag + push → triggers GitHub Actions release
 ```
 
 ### macOS — signing for local development
@@ -99,7 +141,7 @@ lib/
 
 ### State management
 
-Shellbrick uses plain `ValueNotifier` + `ValueListenableBuilder`. No Riverpod, Bloc, Provider, or GetX.
+Xell uses plain `ValueNotifier` + `ValueListenableBuilder`. No Riverpod, Bloc, Provider, or GetX.
 
 ### Key packages
 

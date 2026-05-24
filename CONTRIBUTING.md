@@ -1,16 +1,16 @@
-# Contributing to Shellbrick
+# Contributing to Xell
 
-Thank you for taking the time to contribute. Shellbrick is a focused, local-first SSH workspace and we want to keep it that way.
+Thank you for taking the time to contribute. Xell is a focused, local-first SSH workspace and we want to keep it that way.
 
 ---
 
 ## Before you start
 
-Read the project identity in [CLAUDE.md](CLAUDE.md). It describes exactly what Shellbrick is, what it is not, and the constraints that guide every decision.
+Read the project identity in [CLAUDE.md](CLAUDE.md). It describes exactly what Xell is, what it is not, and the constraints that guide every decision.
 
 The short version:
 
-> Shellbrick is a focused SSH workspace for developers who care about speed, calm UX, and open-source transparency. It is not a generic DevOps dashboard.
+> Xell is a focused SSH workspace for developers who care about speed, calm UX, and open-source transparency. It is not a generic DevOps dashboard.
 
 ---
 
@@ -27,7 +27,7 @@ The short version:
 
 ## MVP vs. post-MVP scope
 
-The MVP is a focused SSH workspace. Once the MVP is stable, Shellbrick will grow into a broader DevOps toolkit. Planned post-MVP directions include:
+The MVP is a focused SSH workspace. Once the MVP is stable, Xell will grow into a broader DevOps toolkit. Planned post-MVP directions include:
 
 - Docker container management
 - Kubernetes cluster access
@@ -51,8 +51,8 @@ If you are unsure whether a contribution fits, open an issue first.
 ## Development setup
 
 ```bash
-git clone https://github.com/your-username/shellbrick.git
-cd shellbrick
+git clone https://github.com/your-username/xell.git
+cd xell
 flutter pub get
 flutter run -d macos
 ```

@@ -1,8 +1,8 @@
-# Shellbrick — Technical Specification (MVP)
+# Xell — Technical Specification (MVP)
 
 # 1. Overview
 
-Shellbrick is a minimalist open-source SSH workspace built with Flutter and Dart.
+Xell is a minimalist open-source SSH workspace built with Flutter and Dart.
 
 The MVP architecture prioritizes:
 
@@ -142,7 +142,7 @@ window_manager:
 
 # 4. Architecture Philosophy
 
-Shellbrick uses a very lightweight architecture.
+Xell uses a very lightweight architecture.
 
 No:
 - Bloc
@@ -167,7 +167,7 @@ lib/
 ├── main.dart
 │
 ├── app/
-│   ├── shellbrick_app.dart
+│   ├── xell_app.dart
 │   ├── app_theme.dart
 │   └── app_routes.dart
 │
@@ -342,10 +342,10 @@ Used for non-sensitive data.
 ## Stored Keys
 
 ```txt
-shellbrick.hosts
-shellbrick.themeMode
-shellbrick.recentHosts
-shellbrick.windowPreferences
+xell.hosts
+xell.themeMode
+xell.recentHosts
+xell.windowPreferences
 ```
 
 ---
@@ -381,8 +381,8 @@ flutter_secure_storage
 ## Stored Keys
 
 ```txt
-shellbrick.host.{hostId}.password
-shellbrick.host.{hostId}.privateKeyPassphrase
+xell.host.{hostId}.password
+xell.host.{hostId}.privateKeyPassphrase
 ```
 
 Important:

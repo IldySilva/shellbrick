@@ -22,7 +22,7 @@ Other approaches you considered and why you ruled them out.
 
 ## Scope check
 
-Please confirm this fits the Shellbrick scope:
+Please confirm this fits the Xell scope:
 
 - [ ] This is related to SSH workflows, terminal, SFTP, or port forwarding
 - [ ] This does not require cloud sync, accounts, or external services

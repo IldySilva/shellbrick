@@ -481,7 +481,6 @@ Inspired by:
 - Ghostty
 - Warp
 - VS Code
-- Apple Human Interface Guidelines
 
 ---
 

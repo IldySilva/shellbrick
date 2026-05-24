@@ -425,7 +425,7 @@ class _AppInfo extends StatelessWidget {
     return const Column(
       children: [
         Text(
-          'Shellbrick',
+          'Xell',
           style: TextStyle(
             color: AppColors.textMuted,
             fontSize: 12,

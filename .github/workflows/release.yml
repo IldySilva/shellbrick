@@ -1,0 +1,155 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  # ── macOS ──────────────────────────────────────────────────────────────────
+  build-macos:
+    name: Build macOS
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build macOS (release)
+        run: flutter build macos --release
+
+      # Optional: code sign + notarize when Apple Developer certs are available.
+      # Set these repository secrets to enable:
+      #   APPLE_CERTIFICATE_BASE64    — p12 certificate, base64-encoded
+      #   APPLE_CERTIFICATE_PASSWORD  — p12 password
+      #   APPLE_TEAM_ID               — 10-char team ID
+      #   APPLE_APPLE_ID              — Apple ID email for notarization
+      #   APPLE_APP_PASSWORD          — app-specific password for notarization
+      - name: Sign & notarize (if certs available)
+        if: ${{ env.APPLE_TEAM_ID != '' }}
+        env:
+          APPLE_CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_APPLE_ID: ${{ secrets.APPLE_APPLE_ID }}
+          APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+        run: |
+          echo "$APPLE_CERTIFICATE_BASE64" | base64 --decode > certificate.p12
+          security create-keychain -p "" build.keychain
+          security import certificate.p12 -k build.keychain -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple: -s -k "" build.keychain
+          security default-keychain -s build.keychain
+          codesign --deep --force --options=runtime \
+            --sign "Developer ID Application: $APPLE_TEAM_ID" \
+            build/macos/Build/Products/Release/shellbrick.app
+          xcrun notarytool submit build/macos/Build/Products/Release/shellbrick.app \
+            --apple-id "$APPLE_APPLE_ID" \
+            --password "$APPLE_APP_PASSWORD" \
+            --team-id "$APPLE_TEAM_ID" \
+            --wait
+          xcrun stapler staple build/macos/Build/Products/Release/shellbrick.app
+
+      - name: Create DMG
+        run: |
+          brew install create-dmg
+          mkdir -p dist
+          create-dmg \
+            --volname "Shellbrick" \
+            --window-pos 200 120 \
+            --window-size 600 380 \
+            --icon-size 120 \
+            --icon "shellbrick.app" 150 185 \
+            --hide-extension "shellbrick.app" \
+            --app-drop-link 450 185 \
+            --no-internet-enable \
+            "dist/Shellbrick-${{ github.ref_name }}-macos.dmg" \
+            "build/macos/Build/Products/Release/shellbrick.app"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-dmg
+          path: dist/Shellbrick-*.dmg
+          retention-days: 7
+
+  # ── Linux ──────────────────────────────────────────────────────────────────
+  build-linux:
+    name: Build Linux
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Linux build dependencies
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y \
+            clang cmake ninja-build pkg-config \
+            libgtk-3-dev liblzma-dev libstdc++-12-dev \
+            libayatana-appindicator3-dev
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build Linux (release)
+        run: flutter build linux --release
+
+      - name: Package tar.gz
+        run: |
+          mkdir -p dist
+          cd build/linux/x64/release/bundle
+          tar -czf "$GITHUB_WORKSPACE/dist/Xell-${{ github.ref_name }}-linux-x64.tar.gz" .
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-bundle
+          path: dist/Shellbrick-*-linux-x64.tar.gz
+          retention-days: 7
+
+  # ── GitHub Release ─────────────────────────────────────────────────────────
+  release:
+    name: Create Release
+    needs: [build-macos, build-linux]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Generate changelog
+        id: changelog
+        uses: orhun/git-cliff-action@v3
+        with:
+          config: cliff.toml
+          args: --latest --strip header
+        env:
+          OUTPUT: CHANGELOG_LATEST.md
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Shellbrick ${{ github.ref_name }}
+          body_path: CHANGELOG_LATEST.md
+          files: |
+            artifacts/macos-dmg/*.dmg
+            artifacts/linux-bundle/*.tar.gz
+            install.sh
+          fail_on_unmatched_files: false
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-') }}

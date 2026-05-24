@@ -1,8 +1,8 @@
-# Shellbrick — Product Specification (MVP)
+# Xell — Product Specification (MVP)
 
 ## 1. Vision
 
-Shellbrick is an open-source SSH workspace focused on:
+Xell is an open-source SSH workspace focused on:
 
 - Minimalism
 - Native platform experience
@@ -13,7 +13,7 @@ Shellbrick is an open-source SSH workspace focused on:
 
 The goal is to become the most developer-friendly SSH workspace for engineers who care about speed, simplicity, and control — whether they are at their desk or on the move.
 
-Shellbrick should feel:
+Xell should feel:
 - fast
 - calm
 - powerful
@@ -26,7 +26,7 @@ Shellbrick should feel:
 
 ## 2.1 Local First
 
-Shellbrick must work fully offline.
+Xell must work fully offline.
 
 No account should be required for:
 - SSH connections
@@ -40,7 +40,7 @@ Cloud functionality is optional and future-facing.
 
 ## 2.2 Native Experience First
 
-Shellbrick must not feel like:
+Xell must not feel like:
 - Electron bloat
 - a wrapped website
 - a generic cross-platform UI
@@ -399,7 +399,7 @@ Terminal interaction must feel instant.
 
 # 6.2 Reliability
 
-Shellbrick should:
+Xell should:
 - recover gracefully
 - avoid crashes
 - reconnect safely
@@ -696,7 +696,7 @@ Recommended:
 
 # 12. Success Criteria
 
-Shellbrick succeeds if users:
+Xell succeeds if users:
 - prefer it over raw terminal workflows
 - trust its security model
 - enjoy daily usage
@@ -725,6 +725,6 @@ or
 
 # 14. Engineering Philosophy
 
-Shellbrick should feel like:
+Xell should feel like:
 
 > “A modern SSH workspace designed by developers who deeply care about developer experience, performance, and native platform quality — on every device.”

@@ -73,8 +73,8 @@ class _AppShellState extends State<AppShell> with WindowListener {
     if (!_isDesktop) return;
     final session = _terminalController.activeSession;
     final title = session != null
-        ? 'Shellbrick — ${session.host.hostname}'
-        : 'Shellbrick';
+        ? 'Xell — ${session.host.hostname}'
+        : 'Xell';
     windowManager.setTitle(title);
   }
 

@@ -1,8 +1,8 @@
-# Shellbrick — Design Specification (MVP)
+# Xell — Design Specification (MVP)
 
 # 1. Design Vision
 
-Shellbrick is not just an SSH client.
+Xell is not just an SSH client.
 
 It is a calm, modern, native workspace for infrastructure engineers.
 
@@ -61,7 +61,7 @@ instead of:
 
 # 2.3 Native Desktop Feel
 
-Shellbrick must feel like a real desktop application.
+Xell must feel like a real desktop application.
 
 Not:
 - a web app
@@ -82,7 +82,7 @@ Infrastructure tools are often:
 - intimidating
 - overloaded
 
-Shellbrick should feel:
+Xell should feel:
 - quiet
 - stable
 - controlled
@@ -519,7 +519,7 @@ Cursor should:
 
 # 12.1 Desktop First
 
-Shellbrick is desktop-first.
+Xell is desktop-first.
 
 Not mobile-first.
 
@@ -612,7 +612,7 @@ Highest priorities:
 
 # 16. Design Anti-Patterns
 
-Never turn Shellbrick into:
+Never turn Xell into:
 
 - a dashboard SaaS
 - an Electron-style web app
@@ -624,6 +624,6 @@ Never turn Shellbrick into:
 
 # 17. Final Design Philosophy
 
-Shellbrick should feel like:
+Xell should feel like:
 
 > “A calm, modern SSH workspace built for serious developers who value focus, speed, and native desktop quality.”

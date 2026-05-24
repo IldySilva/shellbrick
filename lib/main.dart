@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';
-import 'app/shellbrick_app.dart';
+import 'app/xell_app.dart';
 import 'core/window_preferences.dart';
 
 void main() async {
@@ -27,5 +27,5 @@ void main() async {
     });
   }
 
-  runApp(const ShellbrickApp());
+  runApp(const XellApp());
 }

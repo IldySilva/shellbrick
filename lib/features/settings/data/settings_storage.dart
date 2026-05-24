@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsStorage {
-  static const _fontSizeKey = 'shellbrick.terminalFontSize';
-  static const _accentColorKey = 'shellbrick.accentColor';
-  static const _themeModeKey = 'shellbrick.themeMode';
+  static const _fontSizeKey = 'xell.terminalFontSize';
+  static const _accentColorKey = 'xell.accentColor';
+  static const _themeModeKey = 'xell.themeMode';
 
   Future<ThemeMode> loadThemeMode() async {
     final prefs = await SharedPreferences.getInstance();

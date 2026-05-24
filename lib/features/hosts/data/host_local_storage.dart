@@ -3,7 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/ssh_host.dart';
 
 class HostLocalStorage {
-  static const _key = 'shellbrick.hosts';
+  static const _key = 'xell.hosts';
 
   Future<List<SshHost>> loadHosts() async {
     final prefs = await SharedPreferences.getInstance();

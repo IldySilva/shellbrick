@@ -1,4 +1,4 @@
-# Shellbrick — MVP TODO Roadmap
+# Xell — MVP TODO Roadmap
 
 # 1. Project Foundation
 
@@ -19,10 +19,10 @@
 - [x] Create Flutter desktop project
 - [x] Enable macOS support
 - [x] Enable Linux support
-- [ ] Configure app icons
-- [ ] Configure app name
-- [ ] Configure bundle identifiers
-- [ ] Configure desktop window defaults
+- [x] Configure app icons
+- [x] Configure app name
+- [x] Configure bundle identifiers
+- [x] Configure desktop window defaults
 
 ---
 
@@ -530,7 +530,7 @@ The MVP is complete when users can:
 For every feature ask:
 
 ```txt
-Does this make Shellbrick:
+Does this make Xell:
 - faster?
 - simpler?
 - calmer?

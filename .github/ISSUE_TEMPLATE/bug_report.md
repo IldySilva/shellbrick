@@ -26,7 +26,7 @@ What actually happened. Include error messages, logs, or screenshots if relevant
 
 - OS: <!-- e.g. macOS 15.1, Ubuntu 24.04, iOS 18.0, Android 14 -->
 - Flutter version: <!-- output of `flutter --version` -->
-- Shellbrick version: <!-- e.g. 0.1.0 or commit hash -->
+- Xell version: <!-- e.g. 0.1.0 or commit hash -->
 - Auth method: <!-- password / private key / SSH agent -->
 
 ## Additional context
