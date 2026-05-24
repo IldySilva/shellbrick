@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';
 import '../../app/app_theme.dart';
@@ -24,37 +26,38 @@ class TopBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DragToMoveArea(
-      child: Container(
-        height: _topBarHeight,
-        decoration: const BoxDecoration(
-          color: AppColors.background,
-          border: Border(bottom: BorderSide(color: AppColors.border)),
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
-        child: Row(
-          children: [
-            _SessionStatus(hostname: activeSession),
-            const Spacer(),
-            _CommandPaletteButton(onTap: onCommandPaletteTap),
-            const SizedBox(width: AppSpacing.s8),
-            _TopBarIconButton(
-              icon: Icons.settings_outlined,
-              tooltip: 'Settings',
-              onTap: onSettingsTap,
-            ),
+    final isDesktop =
+        Platform.isMacOS || Platform.isLinux || Platform.isWindows;
+    final bar = Container(
+      height: _topBarHeight,
+      decoration: const BoxDecoration(
+        color: AppColors.background,
+        border: Border(bottom: BorderSide(color: AppColors.border)),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s16),
+      child: Row(
+        children: [
+          _SessionStatus(hostname: activeSession),
+          const Spacer(),
+          _CommandPaletteButton(onTap: onCommandPaletteTap),
+          const SizedBox(width: AppSpacing.s8),
+          _TopBarIconButton(
+            icon: Icons.settings_outlined,
+            tooltip: 'Settings',
+            onTap: onSettingsTap,
+          ),
+          if (isDesktop) ...[
             const SizedBox(width: AppSpacing.s4),
             _TopBarIconButton(
-              icon: isFullScreen
-                  ? Icons.fullscreen_exit
-                  : Icons.fullscreen,
+              icon: isFullScreen ? Icons.fullscreen_exit : Icons.fullscreen,
               tooltip: isFullScreen ? 'Exit fullscreen' : 'Enter fullscreen',
               onTap: onToggleFullscreen,
             ),
           ],
-        ),
+        ],
       ),
     );
+    return isDesktop ? DragToMoveArea(child: bar) : bar;
   }
 }
 

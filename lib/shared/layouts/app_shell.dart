@@ -25,6 +25,9 @@ import 'top_bar.dart';
 const double _minSidebarWidth = 180.0;
 const double _maxSidebarWidth = 360.0;
 
+bool get _isDesktop =>
+    Platform.isMacOS || Platform.isLinux || Platform.isWindows;
+
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
 
@@ -47,7 +50,7 @@ class _AppShellState extends State<AppShell> with WindowListener {
   @override
   void initState() {
     super.initState();
-    windowManager.addListener(this);
+    if (_isDesktop) windowManager.addListener(this);
     _hostController = HostController()..load();
     _terminalController = TerminalController();
     _settingsController = SettingsController()..load();
@@ -58,7 +61,7 @@ class _AppShellState extends State<AppShell> with WindowListener {
   @override
   void dispose() {
     _terminalController.activeSessionIdNotifier.removeListener(_updateWindowTitle);
-    windowManager.removeListener(this);
+    if (_isDesktop) windowManager.removeListener(this);
     _hostController.dispose();
     _terminalController.dispose();
     _settingsController.dispose();
@@ -67,6 +70,7 @@ class _AppShellState extends State<AppShell> with WindowListener {
   }
 
   void _updateWindowTitle() {
+    if (!_isDesktop) return;
     final session = _terminalController.activeSession;
     final title = session != null
         ? 'Shellbrick — ${session.host.hostname}'
@@ -94,7 +98,9 @@ class _AppShellState extends State<AppShell> with WindowListener {
   @override
   void onWindowLeaveFullScreen() => setState(() => _isFullScreen = false);
 
-  void _toggleFullscreen() => windowManager.setFullScreen(!_isFullScreen);
+  void _toggleFullscreen() {
+    if (_isDesktop) windowManager.setFullScreen(!_isFullScreen);
+  }
 
   void _closeActiveTab() {
     final id = _terminalController.activeSessionIdNotifier.value;
@@ -104,12 +110,11 @@ class _AppShellState extends State<AppShell> with WindowListener {
   void _selectTab(int index) => setState(() => _selectedIndex = index);
 
   Map<ShortcutActivator, VoidCallback> get _shortcuts {
+    if (!_isDesktop) return {};
     final mac = Platform.isMacOS;
     return {
-      // Command palette: ⌘K on macOS, Ctrl+K on Linux
       SingleActivator(LogicalKeyboardKey.keyK, meta: mac, control: !mac):
           _showCommandPalette,
-      // Fullscreen: ⌘⌃F on macOS, F11 on Linux
       if (mac)
         const SingleActivator(
           LogicalKeyboardKey.keyF,
@@ -118,37 +123,16 @@ class _AppShellState extends State<AppShell> with WindowListener {
         ): _toggleFullscreen
       else
         const SingleActivator(LogicalKeyboardKey.f11): _toggleFullscreen,
-      // Close active terminal tab: ⌘W / Ctrl+W
       SingleActivator(LogicalKeyboardKey.keyW, meta: mac, control: !mac):
           _closeActiveTab,
-      // Switch to Hosts tab: ⌘1 / Ctrl+1
-      SingleActivator(
-        LogicalKeyboardKey.digit1,
-        meta: mac,
-        control: !mac,
-      ): () =>
-          _selectTab(0),
-      // Switch to Terminal tab: ⌘2 / Ctrl+2
-      SingleActivator(
-        LogicalKeyboardKey.digit2,
-        meta: mac,
-        control: !mac,
-      ): () =>
-          _selectTab(1),
-      // Switch to SFTP tab: ⌘3 / Ctrl+3
-      SingleActivator(
-        LogicalKeyboardKey.digit3,
-        meta: mac,
-        control: !mac,
-      ): () =>
-          _selectTab(2),
-      // Switch to Tunnels tab: ⌘4 / Ctrl+4
-      SingleActivator(
-        LogicalKeyboardKey.digit4,
-        meta: mac,
-        control: !mac,
-      ): () =>
-          _selectTab(3),
+      SingleActivator(LogicalKeyboardKey.digit1, meta: mac, control: !mac):
+          () => _selectTab(0),
+      SingleActivator(LogicalKeyboardKey.digit2, meta: mac, control: !mac):
+          () => _selectTab(1),
+      SingleActivator(LogicalKeyboardKey.digit3, meta: mac, control: !mac):
+          () => _selectTab(2),
+      SingleActivator(LogicalKeyboardKey.digit4, meta: mac, control: !mac):
+          () => _selectTab(3),
     };
   }
 
@@ -162,10 +146,9 @@ class _AppShellState extends State<AppShell> with WindowListener {
       transitionBuilder: (ctx, anim, _, child) => FadeTransition(
         opacity: CurvedAnimation(parent: anim, curve: Curves.easeOut),
         child: ScaleTransition(
-          scale: Tween<double>(
-            begin: 0.96,
-            end: 1.0,
-          ).animate(CurvedAnimation(parent: anim, curve: Curves.easeOutCubic)),
+          scale: Tween<double>(begin: 0.96, end: 1.0).animate(
+            CurvedAnimation(parent: anim, curve: Curves.easeOutCubic),
+          ),
           child: child,
         ),
       ),
@@ -206,7 +189,6 @@ class _AppShellState extends State<AppShell> with WindowListener {
       return;
     }
 
-    // Load stored credential — prompt only if not cached.
     final stored = host.authType == AuthType.password
         ? await _credentials.loadPassword(host.id)
         : await _credentials.loadPassphrase(host.id);
@@ -221,11 +203,9 @@ class _AppShellState extends State<AppShell> with WindowListener {
           isPassphrase: host.authType == AuthType.privateKey,
         ),
       );
-      if (credential == null) return; // user cancelled
+      if (credential == null) return;
     }
 
-    // Switch to Terminal tab now — the session will appear in "connecting"
-    // state immediately and the terminal page handles the visual transition.
     if (mounted) setState(() => _selectedIndex = 1);
 
     try {
@@ -235,22 +215,18 @@ class _AppShellState extends State<AppShell> with WindowListener {
         passphrase: host.authType == AuthType.privateKey ? credential : null,
       );
     } catch (_) {
-      // Session is now in error state; TerminalWidget shows _ErrorView.
       return;
     }
 
     await _hostController.markConnected(host.id);
 
-    // Persist credential in the background; failure is non-fatal.
     try {
       if (host.authType == AuthType.password) {
         await _credentials.savePassword(host.id, credential);
       } else if (host.authType == AuthType.privateKey) {
         await _credentials.savePassphrase(host.id, credential);
       }
-    } catch (_) {
-      // Credential persistence failed — user will be prompted again next time.
-    }
+    } catch (_) {}
   }
 
   void _showSnackbar(String message) {
@@ -273,69 +249,7 @@ class _AppShellState extends State<AppShell> with WindowListener {
 
   // ── Build ─────────────────────────────────────────────────────────────────
 
-  @override
-  Widget build(BuildContext context) {
-    return CallbackShortcuts(
-      bindings: _shortcuts,
-      child: Focus(
-        autofocus: true,
-        child: Scaffold(
-          backgroundColor: AppColors.background,
-          body: Row(
-            children: [
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 180),
-                curve: Curves.easeInOut,
-                width: _effectiveSidebarWidth,
-                child: Sidebar(
-                  selectedIndex: _selectedIndex,
-                  isCollapsed: _sidebarCollapsed,
-                  onItemSelected: (i) => setState(() => _selectedIndex = i),
-                  onSettingsTap: () => setState(() => _selectedIndex = 4),
-                  onToggleCollapse: () =>
-                      setState(() => _sidebarCollapsed = !_sidebarCollapsed),
-                ),
-              ),
-              if (!_sidebarCollapsed) _ResizeHandle(onDrag: _onSidebarResize),
-              Expanded(
-                child: Column(
-                  children: [
-                    ValueListenableBuilder<String?>(
-                      valueListenable:
-                          _terminalController.activeSessionIdNotifier,
-                      builder: (context, sessionId, child) => TopBar(
-                        onCommandPaletteTap: _showCommandPalette,
-                        onSettingsTap: () => setState(() => _selectedIndex = 4),
-                        isFullScreen: _isFullScreen,
-                        onToggleFullscreen: _toggleFullscreen,
-                        activeSession:
-                            _terminalController.activeSession?.host.hostname,
-                      ),
-                    ),
-                    Expanded(
-                      child: AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 180),
-                        switchInCurve: Curves.easeOut,
-                        switchOutCurve: Curves.easeIn,
-                        transitionBuilder: (child, animation) =>
-                            FadeTransition(opacity: animation, child: child),
-                        child: KeyedSubtree(
-                          key: ValueKey(_selectedIndex),
-                          child: _page(_selectedIndex),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _page(int index) => switch (index) {
+  Widget _pageContent(int index) => switch (index) {
     0 => HostListPage(controller: _hostController, onConnect: _handleConnect),
     1 => ValueListenableBuilder<double>(
       valueListenable: _settingsController.fontSizeNotifier,
@@ -357,7 +271,168 @@ class _AppShellState extends State<AppShell> with WindowListener {
     4 => SettingsPage(controller: _settingsController),
     _ => const _PlaceholderPage(),
   };
+
+  Widget _animatedPage(int index) => AnimatedSwitcher(
+    duration: const Duration(milliseconds: 180),
+    switchInCurve: Curves.easeOut,
+    switchOutCurve: Curves.easeIn,
+    transitionBuilder: (child, animation) =>
+        FadeTransition(opacity: animation, child: child),
+    child: KeyedSubtree(
+      key: ValueKey(index),
+      child: _pageContent(index),
+    ),
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    return CallbackShortcuts(
+      bindings: _shortcuts,
+      child: Focus(
+        autofocus: true,
+        child: _isDesktop ? _buildDesktop() : _buildMobile(),
+      ),
+    );
+  }
+
+  Widget _buildDesktop() {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: Row(
+        children: [
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            curve: Curves.easeInOut,
+            width: _effectiveSidebarWidth,
+            child: Sidebar(
+              selectedIndex: _selectedIndex,
+              isCollapsed: _sidebarCollapsed,
+              onItemSelected: (i) => setState(() => _selectedIndex = i),
+              onSettingsTap: () => setState(() => _selectedIndex = 4),
+              onToggleCollapse: () =>
+                  setState(() => _sidebarCollapsed = !_sidebarCollapsed),
+            ),
+          ),
+          if (!_sidebarCollapsed) _ResizeHandle(onDrag: _onSidebarResize),
+          Expanded(
+            child: Column(
+              children: [
+                ValueListenableBuilder<String?>(
+                  valueListenable: _terminalController.activeSessionIdNotifier,
+                  builder: (context, sessionId, child) => TopBar(
+                    onCommandPaletteTap: _showCommandPalette,
+                    onSettingsTap: () => setState(() => _selectedIndex = 4),
+                    isFullScreen: _isFullScreen,
+                    onToggleFullscreen: _toggleFullscreen,
+                    activeSession:
+                        _terminalController.activeSession?.host.hostname,
+                  ),
+                ),
+                Expanded(child: _animatedPage(_selectedIndex)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMobile() {
+    // Settings lives at index 4 but the bottom nav only has 4 items (0-3).
+    // We handle tapping the settings icon via a dedicated nav item at index 4.
+    final navIndex = _selectedIndex.clamp(0, 4);
+
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: SafeArea(child: _animatedPage(_selectedIndex)),
+      bottomNavigationBar: _MobileNavBar(
+        selectedIndex: navIndex,
+        onItemSelected: (i) => setState(() => _selectedIndex = i),
+        onCommandPaletteTap: _showCommandPalette,
+      ),
+    );
+  }
 }
+
+// ── Mobile bottom nav bar ─────────────────────────────────────────────────────
+
+class _MobileNavBar extends StatelessWidget {
+  final int selectedIndex;
+  final ValueChanged<int> onItemSelected;
+  final VoidCallback onCommandPaletteTap;
+
+  const _MobileNavBar({
+    required this.selectedIndex,
+    required this.onItemSelected,
+    required this.onCommandPaletteTap,
+  });
+
+  static const _items = [
+    (icon: Icons.dns_outlined, label: 'Hosts'),
+    (icon: Icons.terminal_outlined, label: 'Terminal'),
+    (icon: Icons.folder_open_outlined, label: 'SFTP'),
+    (icon: Icons.alt_route_outlined, label: 'Tunnels'),
+    (icon: Icons.settings_outlined, label: 'Settings'),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: AppColors.surface,
+        border: Border(top: BorderSide(color: AppColors.border)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Row(
+          children: [
+            ..._items.indexed.map((e) {
+              final idx = e.$1;
+              final item = e.$2;
+              final selected = selectedIndex == idx;
+              return Expanded(
+                child: GestureDetector(
+                  onTap: () => onItemSelected(idx),
+                  behavior: HitTestBehavior.opaque,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          item.icon,
+                          size: 22,
+                          color: selected
+                              ? AppColors.accent
+                              : AppColors.textMuted,
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          item.label,
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: selected
+                                ? AppColors.accent
+                                : AppColors.textMuted,
+                            fontWeight: selected
+                                ? FontWeight.w600
+                                : FontWeight.w400,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Desktop-only widgets ──────────────────────────────────────────────────────
 
 class _ResizeHandle extends StatefulWidget {
   final ValueChanged<double> onDrag;

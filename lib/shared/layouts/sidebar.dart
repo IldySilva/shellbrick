@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:window_manager/window_manager.dart';
 import '../../app/app_theme.dart';
@@ -41,7 +43,10 @@ class Sidebar extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          DragToMoveArea(child: SizedBox(height: _trafficLightsClearance)),
+          if (Platform.isMacOS || Platform.isLinux || Platform.isWindows)
+            DragToMoveArea(child: SizedBox(height: _trafficLightsClearance))
+          else
+            const SizedBox(height: _trafficLightsClearance),
           ..._navItems.indexed.map(
             (e) => _NavItem(
               icon: e.$2.icon,

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:window_manager/window_manager.dart';
@@ -8,7 +10,11 @@ abstract final class WindowPreferences {
   static const _keyX = 'shellbrick.window.x';
   static const _keyY = 'shellbrick.window.y';
 
+  static bool get _isDesktop =>
+      Platform.isMacOS || Platform.isLinux || Platform.isWindows;
+
   static Future<void> restore() async {
+    if (!_isDesktop) return;
     final prefs = await SharedPreferences.getInstance();
     final width = prefs.getDouble(_keyWidth);
     final height = prefs.getDouble(_keyHeight);
@@ -24,6 +30,7 @@ abstract final class WindowPreferences {
   }
 
   static Future<void> save() async {
+    if (!_isDesktop) return;
     final prefs = await SharedPreferences.getInstance();
     final size = await windowManager.getSize();
     final position = await windowManager.getPosition();

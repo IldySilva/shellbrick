@@ -23,17 +23,26 @@ The short version:
 - Missing MVP features listed in the project roadmap
 - Documentation improvements
 - Test coverage for core logic
+- Post-MVP DevOps integrations (Docker, Kubernetes, AI-assisted workflows) — open an issue first to align on approach
+
+## MVP vs. post-MVP scope
+
+The MVP is a focused SSH workspace. Once the MVP is stable, Shellbrick will grow into a broader DevOps toolkit. Planned post-MVP directions include:
+
+- Docker container management
+- Kubernetes cluster access
+- AI-assisted terminal workflows
+- Plugin / extension system
+
+Contributions in these areas are welcome **after the MVP is complete** and only with prior discussion in an issue to align on design and scope.
 
 ## What we will decline
 
-- Cloud sync
-- User accounts or teams
-- AI features
-- Docker / Kubernetes integration
+- Cloud sync or user accounts (data stays local-first)
 - External state management libraries (Riverpod, Bloc, Provider, GetX)
-- External databases (SQLite, Drift, Isar, Hive)
-- Backend APIs or remote dependencies
-- Feature additions outside the MVP scope without prior discussion
+- External databases (SQLite, Drift, Isar, Hive) without a compelling reason
+- Backend APIs or remote dependencies that break the local-first guarantee
+- Features that add complexity without clear user value
 
 If you are unsure whether a contribution fits, open an issue first.
 

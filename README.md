@@ -10,7 +10,7 @@ A calm, open-source SSH workspace built for developers who value focus, speed, a
 
 ## What it is
 
-Shellbrick is a focused SSH workspace — not a generic DevOps dashboard. It provides:
+Shellbrick is an open-source SSH workspace on its way to becoming a full DevOps toolkit. It provides:
 
 - **Host management** — store and organize your SSH hosts locally
 - **Integrated terminal** — full xterm-compatible sessions via `dartssh2`
@@ -21,6 +21,13 @@ Shellbrick is a focused SSH workspace — not a generic DevOps dashboard. It pro
 - **Local-first** — no accounts, no cloud sync, no telemetry
 
 Inspired by Linear, Raycast, Ghostty, and Warp.
+
+### Roadmap (post-MVP)
+
+- Docker container management
+- Kubernetes cluster access
+- AI-assisted terminal workflows
+- Plugin / extension system
 
 ---
 

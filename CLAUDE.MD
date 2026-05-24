@@ -15,8 +15,9 @@ It is a minimalist, native-feeling alternative to tools like Termius, focused on
 - Fast keyboard workflows
 - macOS, Linux, iOS, and Android platform experience
 
-Shellbrick is not a generic DevOps dashboard.  
-It is a focused SSH workspace for developers who care about speed, calm UX, native platform quality, and open-source transparency — whether at their desk or on a mobile device.
+Shellbrick starts as a focused SSH workspace and grows into a full DevOps toolkit — Docker, Kubernetes, and AI-assisted workflows are explicitly on the post-MVP roadmap.
+
+The MVP priority is: SSH workspace done right. Then build outward from there.
 
 ---
 
@@ -24,7 +25,7 @@ It is a focused SSH workspace for developers who care about speed, calm UX, nati
 
 Shellbrick should feel like:
 
-> A calm, modern SSH workspace built for serious developers who value focus, speed, trust, and native platform quality — on every device.
+> A calm, modern DevOps workspace built for serious developers who value focus, speed, trust, and native platform quality — on every device. Starting with SSH, growing into Docker, Kubernetes, and AI-assisted workflows.
 
 The product should be:
 
@@ -54,21 +55,23 @@ The MVP focuses only on:
 - Basic local port forwarding
 
 Mobile-specific MVP constraints:
-- `window_manager` is desktop-only — never initialize it on iOS/Android; use `Platform.isDesktop` guards
+- `window_manager` is desktop-only — never initialize it on iOS/Android; use `Platform.isMacOS || Platform.isLinux || Platform.isWindows` guards (`Platform.isDesktop` does not exist in `dart:io`)
 - Sidebar layout is desktop-only — mobile uses a bottom navigation bar
 - Keyboard shortcuts (`⌘K`, `⌘W`, etc.) only register on desktop — skip registration on mobile
 - Background SSH sessions are not supported on iOS in MVP (foreground only)
 
-Do not build:
+Do not build in MVP (post-MVP roadmap items, not permanent exclusions):
+
+- AI-assisted terminal workflows → post-MVP
+- Docker container management → post-MVP
+- Kubernetes cluster access → post-MVP
+- Plugin / extension system → post-MVP
+
+Do not build at all (not on the roadmap):
 
 - cloud sync
 - user accounts
-- collaboration
-- teams
-- AI features
-- plugin system
-- Kubernetes integration
-- Docker integration
+- collaboration / teams
 - complex database abstraction
 - advanced dependency injection
 - over-engineered architecture
