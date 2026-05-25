@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:xterm/xterm.dart';
+import 'package:flutter/services.dart';
+import 'package:xterm/xterm.dart' hide TerminalController;
+import 'package:xterm/ui.dart' as xterm_ui show TerminalController;
 import '../../../app/app_theme.dart';
 import '../models/terminal_session.dart';
 
@@ -68,7 +70,7 @@ class TerminalWidget extends StatelessWidget {
   }
 }
 
-class _ConnectedView extends StatelessWidget {
+class _ConnectedView extends StatefulWidget {
   final TerminalSession session;
   final double fontSize;
   final TerminalTheme terminalTheme;
@@ -82,13 +84,68 @@ class _ConnectedView extends StatelessWidget {
   });
 
   @override
+  State<_ConnectedView> createState() => _ConnectedViewState();
+}
+
+class _ConnectedViewState extends State<_ConnectedView> {
+  final _xtermController = xterm_ui.TerminalController();
+
+  @override
+  void dispose() {
+    _xtermController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return TerminalView(
-      session.xterm!,
-      theme: terminalTheme,
-      textStyle: TerminalStyle(fontSize: fontSize, fontFamily: 'monospace'),
-      autofocus: autofocus,
-      padding: const EdgeInsets.all(AppSpacing.s8),
+    final terminal = widget.session.xterm!;
+    return Shortcuts(
+      shortcuts: defaultTerminalShortcuts,
+      child: Actions(
+        actions: {
+          CopySelectionTextIntent: CallbackAction<CopySelectionTextIntent>(
+            onInvoke: (_) async {
+              final sel = _xtermController.selection;
+              if (sel == null) return null;
+              final text = terminal.buffer.getText(sel);
+              await Clipboard.setData(ClipboardData(text: text));
+              return null;
+            },
+          ),
+          PasteTextIntent: CallbackAction<PasteTextIntent>(
+            onInvoke: (_) async {
+              final data = await Clipboard.getData(Clipboard.kTextPlain);
+              final text = data?.text;
+              if (text != null) {
+                terminal.paste(text);
+                _xtermController.clearSelection();
+              }
+              return null;
+            },
+          ),
+          SelectAllTextIntent: CallbackAction<SelectAllTextIntent>(
+            onInvoke: (_) {
+              _xtermController.setSelection(
+                terminal.buffer.createAnchor(
+                    0, terminal.buffer.height - terminal.viewHeight),
+                terminal.buffer.createAnchor(
+                    terminal.viewWidth, terminal.buffer.height - 1),
+                mode: SelectionMode.line,
+              );
+              return null;
+            },
+          ),
+        },
+        child: TerminalView(
+          terminal,
+          controller: _xtermController,
+          theme: widget.terminalTheme,
+          textStyle: TerminalStyle(
+              fontSize: widget.fontSize, fontFamily: 'monospace'),
+          autofocus: widget.autofocus,
+          padding: const EdgeInsets.all(AppSpacing.s8),
+        ),
+      ),
     );
   }
 }
