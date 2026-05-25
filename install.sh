@@ -1,20 +1,25 @@
 #!/bin/bash
 # Xell installer
-# Usage: curl -fsSL https://raw.githubusercontent.com/IldySilva/xell/master/install.sh | bash
+# Usage: curl -fsSL https://raw.githubusercontent.com/ildysilva/xell/main/install.sh | bash
 # Or:    ./install.sh [--version v0.1.0]
 
 set -euo pipefail
 
 # ── Config ────────────────────────────────────────────────────────────────────
-REPO="ildysilva/xell"   
+REPO="ildysilva/xell"
 APP_NAME="Xell"
 BIN_NAME="xell"
 INSTALL_VERSION=""     # empty = latest
+RELEASES_URL="https://github.com/$REPO/releases"
 
 # ── Args ──────────────────────────────────────────────────────────────────────
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --version) INSTALL_VERSION="$2"; shift 2 ;;
+    --version)
+      [[ $# -ge 2 ]] || die "--version requires a value, for example: --version v0.1.0"
+      INSTALL_VERSION="$2"
+      shift 2
+      ;;
     --help|-h)
       echo "Usage: install.sh [--version v0.1.0]"
       exit 0 ;;
@@ -32,6 +37,124 @@ need() {
   command -v "$1" &>/dev/null || die "Required tool not found: $1. Install it and retry."
 }
 
+curl_head_ok() {
+  curl -fsSIL --connect-timeout 10 --retry 2 --retry-delay 1 "$1" >/dev/null 2>&1
+}
+
+latest_version_from_github_redirect() {
+  local effective_url version
+
+  effective_url="$(curl -fsSLI \
+    --connect-timeout 10 \
+    --retry 2 \
+    --retry-delay 1 \
+    -o /dev/null \
+    -w '%{url_effective}' \
+    "$RELEASES_URL/latest" 2>/dev/null || true)"
+
+  version="${effective_url##*/}"
+  if [[ "$version" == v* && "$version" != "latest" ]]; then
+    printf '%s\n' "$version"
+    return 0
+  fi
+
+  return 1
+}
+
+latest_version_from_github_api() {
+  local release_json version
+
+  release_json="$(curl -fsSL \
+    --connect-timeout 10 \
+    --retry 2 \
+    --retry-delay 1 \
+    "https://api.github.com/repos/$REPO/releases/latest" 2>/dev/null || true)"
+
+  version="$(printf '%s' "$release_json" \
+    | grep '"tag_name"' \
+    | head -1 \
+    | sed 's/.*"tag_name": *"\([^"]*\)".*/\1/')"
+
+  if [[ -n "$version" ]]; then
+    printf '%s\n' "$version"
+    return 0
+  fi
+
+  return 1
+}
+
+resolve_latest_version() {
+  latest_version_from_github_redirect || latest_version_from_github_api
+}
+
+strip_version_prefix() {
+  printf '%s\n' "${1#v}"
+}
+
+normalize_version() {
+  if [[ "$1" == v* ]]; then
+    printf '%s\n' "$1"
+  else
+    printf 'v%s\n' "$1"
+  fi
+}
+
+release_asset_url() {
+  printf '%s/download/%s/%s\n' "$RELEASES_URL" "$1" "$2"
+}
+
+resolve_download_url() {
+  local version="$1"
+  local platform="$2"
+  local arch="$3"
+  local plain_version
+  local candidates=()
+  local asset url
+
+  plain_version="$(strip_version_prefix "$version")"
+
+  case "$platform" in
+    macos)
+      candidates=(
+        "xell-macos.dmg"
+        "Xell-$version-macos.dmg"
+        "Xell-v$plain_version-macos.dmg"
+      )
+      ;;
+    linux)
+      case "$arch" in
+        x86_64|amd64)
+          candidates=(
+            "xell-linux-x64.tar.gz"
+            "Xell-$version-linux-x64.tar.gz"
+            "Xell-v$plain_version-linux-x64.tar.gz"
+          )
+          ;;
+        aarch64|arm64)
+          candidates=(
+            "xell-linux-arm64.tar.gz"
+            "Xell-$version-linux-arm64.tar.gz"
+            "Xell-v$plain_version-linux-arm64.tar.gz"
+          )
+          ;;
+        *)
+          die "Unsupported Linux architecture: $arch"
+          ;;
+      esac
+      ;;
+  esac
+
+  for asset in "${candidates[@]}"; do
+    url="$(release_asset_url "$version" "$asset")"
+    if curl_head_ok "$url"; then
+      printf '%s\n' "$url"
+      return 0
+    fi
+  done
+
+  return 1
+}
+
 # ── Platform detection ────────────────────────────────────────────────────────
 OS="$(uname -s)"
 ARCH="$(uname -m)"
@@ -39,7 +162,7 @@ ARCH="$(uname -m)"
 case "$OS" in
   Darwin) PLATFORM="macos" ;;
   Linux)  PLATFORM="linux" ;;
-  *)      die "Unsupported OS: $OS. Install manually from https://github.com/$REPO/releases" ;;
+  *)      die "Unsupported OS: $OS. Install manually from $RELEASES_URL" ;;
 esac
 
 need curl
@@ -48,42 +171,18 @@ if [[ "$PLATFORM" == "macos" ]]; then
   need hdiutil
 fi
 
-# ── Fetch release metadata ────────────────────────────────────────────────────
+# ── Resolve release ───────────────────────────────────────────────────────────
 if [[ -n "$INSTALL_VERSION" ]]; then
-  API_URL="https://api.github.com/repos/$REPO/releases/tags/$INSTALL_VERSION"
+  VERSION="$(normalize_version "$INSTALL_VERSION")"
 else
-  API_URL="https://api.github.com/repos/$REPO/releases/latest"
+  info "Checking latest release..."
+  VERSION="$(resolve_latest_version)" \
+    || die "Could not determine the latest release. Open $RELEASES_URL and retry with: --version vX.Y.Z"
 fi
 
-info "Checking latest release..."
-RELEASE_JSON="$(curl -fsSL "$API_URL" 2>/dev/null)" \
-  || die "Could not reach GitHub API. Check your internet connection."
-
-VERSION="$(printf '%s' "$RELEASE_JSON" | grep '"tag_name"' | head -1 | sed 's/.*"tag_name": *"\([^"]*\)".*/\1/')"
-[[ -n "$VERSION" ]] || die "No release found. Check https://github.com/$REPO/releases"
-
 # ── Resolve download URL ──────────────────────────────────────────────────────
-case "$PLATFORM" in
-  macos)
-    ASSET_PATTERN="macos.dmg"
-    ;;
-  linux)
-    case "$ARCH" in
-      x86_64)        ASSET_PATTERN="linux-x64.tar.gz" ;;
-      aarch64|arm64) ASSET_PATTERN="linux-arm64.tar.gz" ;;
-      *)             die "Unsupported architecture: $ARCH" ;;
-    esac
-    ;;
-esac
-
-DOWNLOAD_URL="$(printf '%s' "$RELEASE_JSON" \
-  | grep '"browser_download_url"' \
-  | grep "$ASSET_PATTERN" \
-  | head -1 \
-  | sed 's/.*"browser_download_url": *"\([^"]*\)".*/\1/')"
-
-[[ -n "$DOWNLOAD_URL" ]] \
-  || die "No $PLATFORM build in release $VERSION. Check https://github.com/$REPO/releases"
+DOWNLOAD_URL="$(resolve_download_url "$VERSION" "$PLATFORM" "$ARCH")" \
+  || die "No $PLATFORM build for $OS ($ARCH) in release $VERSION. Check $RELEASES_URL/tag/$VERSION"
 
 # ── Download ──────────────────────────────────────────────────────────────────
 echo ""
