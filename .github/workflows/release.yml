@@ -110,6 +110,7 @@ jobs:
       - name: Package tar.gz
         run: |
           mkdir -p dist
+          cp linux/icons/256x256.png build/linux/x64/release/bundle/xell.png
           cd build/linux/x64/release/bundle
           tar -czf "$GITHUB_WORKSPACE/dist/xell-linux-x64.tar.gz" .
 

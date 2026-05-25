@@ -131,10 +131,22 @@ if [[ "$PLATFORM" == "linux" ]]; then
   BUNDLE_DIR="$HOME/.local/share/$BIN_NAME"
   BIN_DIR="$HOME/.local/bin"
   BIN_LINK="$BIN_DIR/$BIN_NAME"
+  DESKTOP_DIR="$HOME/.local/share/applications"
+  ICON_DIR="$HOME/.local/share/icons/hicolor/256x256/apps"
+
+  # Check libsecret (required for secure credential storage)
+  if ! ldconfig -p 2>/dev/null | grep -q "libsecret-1"; then
+    warn "libsecret-1 not detected — credential storage may not work."
+    echo "    Install it before launching Xell:"
+    echo "      Ubuntu/Debian:  sudo apt install libsecret-1-0"
+    echo "      Fedora:         sudo dnf install libsecret"
+    echo "      Arch:           sudo pacman -S libsecret"
+    echo ""
+  fi
 
   info "Extracting bundle..."
   rm -rf "$BUNDLE_DIR"
-  mkdir -p "$BUNDLE_DIR" "$BIN_DIR"
+  mkdir -p "$BUNDLE_DIR" "$BIN_DIR" "$DESKTOP_DIR" "$ICON_DIR"
   tar -xzf "$DOWNLOAD_FILE" -C "$BUNDLE_DIR"
 
   # The Flutter Linux bundle has the binary at the root of the extracted dir
@@ -145,19 +157,49 @@ if [[ "$PLATFORM" == "linux" ]]; then
   info "Linking to $BIN_LINK..."
   ln -sf "$BINARY" "$BIN_LINK"
 
+  # Install icon if bundled
+  ICON_SRC="$(find "$BUNDLE_DIR" -name "$BIN_NAME.png" 2>/dev/null | head -1)"
+  if [[ -n "$ICON_SRC" ]]; then
+    cp "$ICON_SRC" "$ICON_DIR/$BIN_NAME.png"
+    ICON_VALUE="$BIN_NAME"
+  else
+    ICON_VALUE="utilities-terminal"
+  fi
+
+  # Create .desktop entry so the app appears in GNOME / KDE / app launchers
+  info "Creating desktop entry..."
+  cat > "$DESKTOP_DIR/$BIN_NAME.desktop" <<EOF
+[Desktop Entry]
+Name=Xell
+Comment=Open-source SSH workspace
+Exec=$BINARY
+Icon=$ICON_VALUE
+Terminal=false
+Type=Application
+Categories=Network;RemoteAccess;System;
+StartupNotify=true
+EOF
+  chmod +x "$DESKTOP_DIR/$BIN_NAME.desktop"
+
+  # Refresh desktop and icon databases
+  command -v update-desktop-database &>/dev/null \
+    && update-desktop-database "$DESKTOP_DIR" 2>/dev/null || true
+  command -v gtk-update-icon-cache &>/dev/null \
+    && gtk-update-icon-cache -f -t "$HOME/.local/share/icons/hicolor" 2>/dev/null || true
+
   echo ""
-  ok "$APP_NAME $VERSION installed to $BUNDLE_DIR"
-  ok "Binary linked at $BIN_LINK"
+  ok "$APP_NAME $VERSION installed"
+  ok "Appears in your app launcher"
 
   # PATH hint if ~/.local/bin is not in PATH
   if ! echo ":$PATH:" | grep -q ":$BIN_DIR:"; then
     echo ""
-    warn "~/.local/bin is not in your PATH."
-    echo "    Add this to ~/.bashrc or ~/.zshrc and restart your shell:"
+    warn "~/.local/bin is not in your PATH. To also launch from terminal:"
+    echo "    Add this to ~/.bashrc or ~/.zshrc:"
     echo ""
     echo "      export PATH=\"\$HOME/.local/bin:\$PATH\""
     echo ""
   else
-    info "Run it: $BIN_NAME"
+    ok "Launch from terminal: $BIN_NAME"
   fi
 fi
