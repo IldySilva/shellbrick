@@ -126,6 +126,8 @@ class _AppShellState extends State<AppShell> with WindowListener {
           _showCommandPalette,
       SingleActivator(LogicalKeyboardKey.keyN, meta: mac, control: !mac):
           _showCommandPalette,
+      SingleActivator(LogicalKeyboardKey.comma, meta: mac, control: !mac):
+          () => setState(() => _selectedIndex = 4),
       if (mac)
         const SingleActivator(
           LogicalKeyboardKey.keyF,
@@ -333,6 +335,21 @@ class _AppShellState extends State<AppShell> with WindowListener {
 
   static final _issuesUri =
       Uri.parse('https://github.com/IldySilva/xell/issues/new');
+  static final _githubUri =
+      Uri.parse('https://github.com/IldySilva/xell');
+  static final _releasesUri =
+      Uri.parse('https://github.com/IldySilva/xell/releases');
+
+  void _checkForUpdates() {
+    UpdateService.checkForUpdate().then((v) {
+      if (!mounted) return;
+      if (v != null) {
+        _updateNotifier.value = v;
+      } else {
+        _showSnackbar('You\'re on the latest version.');
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -344,19 +361,89 @@ class _AppShellState extends State<AppShell> with WindowListener {
       ),
     );
 
-    if (!Platform.isMacOS) return content;
+    if (!Platform.isMacOS && !Platform.isLinux) return content;
 
     return PlatformMenuBar(
       menus: [
         PlatformMenu(
-          label: 'Help',
+          label: 'File',
+          menus: [
+            PlatformMenuItemGroup(
+              members: [
+                PlatformMenuItem(
+                  label: 'New Connection',
+                  shortcut: const SingleActivator(
+                      LogicalKeyboardKey.keyN, meta: true),
+                  onSelected: _showCommandPalette,
+                ),
+              ],
+            ),
+            PlatformMenuItemGroup(
+              members: [
+                PlatformMenuItem(
+                  label: 'Close Tab',
+                  shortcut: const SingleActivator(
+                      LogicalKeyboardKey.keyW, meta: true),
+                  onSelected: _closeActiveTab,
+                ),
+              ],
+            ),
+            PlatformMenuItemGroup(
+              members: [
+                PlatformMenuItem(
+                  label: 'Settings',
+                  shortcut: const SingleActivator(
+                      LogicalKeyboardKey.comma, meta: true),
+                  onSelected: () => setState(() => _selectedIndex = 4),
+                ),
+              ],
+            ),
+          ],
+        ),
+        PlatformMenu(
+          label: 'Window',
           menus: [
             PlatformMenuItem(
-              label: 'Report a Bug',
-              onSelected: () => launchUrl(
-                _issuesUri,
-                mode: LaunchMode.externalApplication,
-              ),
+              label: 'Toggle Full Screen',
+              shortcut: const SingleActivator(
+                  LogicalKeyboardKey.keyF, meta: true, control: true),
+              onSelected: _toggleFullscreen,
+            ),
+          ],
+        ),
+        PlatformMenu(
+          label: 'Help',
+          menus: [
+            PlatformMenuItemGroup(
+              members: [
+                PlatformMenuItem(
+                  label: 'Check for Updates',
+                  onSelected: _checkForUpdates,
+                ),
+              ],
+            ),
+            PlatformMenuItemGroup(
+              members: [
+                PlatformMenuItem(
+                  label: 'View on GitHub',
+                  onSelected: () => launchUrl(_githubUri,
+                      mode: LaunchMode.externalApplication),
+                ),
+                PlatformMenuItem(
+                  label: "What's New",
+                  onSelected: () => launchUrl(_releasesUri,
+                      mode: LaunchMode.externalApplication),
+                ),
+              ],
+            ),
+            PlatformMenuItemGroup(
+              members: [
+                PlatformMenuItem(
+                  label: 'Report a Bug',
+                  onSelected: () => launchUrl(_issuesUri,
+                      mode: LaunchMode.externalApplication),
+                ),
+              ],
             ),
           ],
         ),
