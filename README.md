@@ -93,7 +93,7 @@ Follow the official guide: https://docs.flutter.dev/get-started/install
 ### Clone and run
 
 ```bash
-git clone https://github.com/your-username/xell.git
+git clone https://github.com/ildysilva/xell.git
 cd xell
 flutter pub get
 flutter run -d macos       # macOS

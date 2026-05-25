@@ -51,7 +51,7 @@ If you are unsure whether a contribution fits, open an issue first.
 ## Development setup
 
 ```bash
-git clone https://github.com/your-username/xell.git
+git clone https://github.com/ildysilva/xell.git
 cd xell
 flutter pub get
 flutter run -d macos
