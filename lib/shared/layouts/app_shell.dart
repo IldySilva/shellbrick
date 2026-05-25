@@ -19,6 +19,9 @@ import '../../features/command_palette/views/command_palette.dart';
 import '../../features/hosts/views/host_form_dialog.dart';
 import '../../features/hosts/views/host_form_page.dart';
 import '../../features/hosts/views/ssh_config_import_dialog.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+import '../../core/update_service.dart';
 import '../../features/terminal/models/terminal_theme_presets.dart';
 import '../../features/terminal/views/credential_prompt_dialog.dart';
 import '../../features/terminal/views/terminal_page.dart';
@@ -49,6 +52,7 @@ class _AppShellState extends State<AppShell> with WindowListener {
   late final SettingsController _settingsController;
   late final TunnelController _tunnelController;
   final _credentials = CredentialStorage();
+  final _updateNotifier = ValueNotifier<String?>(null);
 
   @override
   void initState() {
@@ -59,6 +63,7 @@ class _AppShellState extends State<AppShell> with WindowListener {
     _settingsController = SettingsController()..load();
     _tunnelController = TunnelController();
     _terminalController.activeSessionIdNotifier.addListener(_updateWindowTitle);
+    UpdateService.checkForUpdate().then((v) => _updateNotifier.value = v);
   }
 
   @override
@@ -69,6 +74,7 @@ class _AppShellState extends State<AppShell> with WindowListener {
     _terminalController.dispose();
     _settingsController.dispose();
     _tunnelController.dispose();
+    _updateNotifier.dispose();
     super.dispose();
   }
 
@@ -366,6 +372,13 @@ class _AppShellState extends State<AppShell> with WindowListener {
                         _terminalController.activeSession?.host.hostname,
                   ),
                 ),
+                ValueListenableBuilder<String?>(
+                  valueListenable: _updateNotifier,
+                  builder: (_, version, child) => _UpdateBanner(
+                    version: version,
+                    onDismiss: () => _updateNotifier.value = null,
+                  ),
+                ),
                 Expanded(child: _animatedPage(_selectedIndex)),
               ],
             ),
@@ -382,7 +395,20 @@ class _AppShellState extends State<AppShell> with WindowListener {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: SafeArea(child: _animatedPage(_selectedIndex)),
+      body: SafeArea(
+        child: Column(
+          children: [
+            ValueListenableBuilder<String?>(
+              valueListenable: _updateNotifier,
+              builder: (_, version, child) => _UpdateBanner(
+                version: version,
+                onDismiss: () => _updateNotifier.value = null,
+              ),
+            ),
+            Expanded(child: _animatedPage(_selectedIndex)),
+          ],
+        ),
+      ),
       bottomNavigationBar: _MobileNavBar(
         selectedIndex: navIndex,
         onItemSelected: (i) => setState(() => _selectedIndex = i),
@@ -512,6 +538,66 @@ class _PlaceholderPage extends StatelessWidget {
       child: Text(
         'Coming soon.',
         style: TextStyle(color: AppColors.textMuted, fontSize: 13),
+      ),
+    );
+  }
+}
+
+// ── Update banner ─────────────────────────────────────────────────────────────
+
+class _UpdateBanner extends StatelessWidget {
+  final String? version;
+  final VoidCallback onDismiss;
+
+  const _UpdateBanner({required this.version, required this.onDismiss});
+
+  @override
+  Widget build(BuildContext context) {
+    if (version == null) return const SizedBox.shrink();
+    return Container(
+      width: double.infinity,
+      color: AppColors.surface,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        children: [
+          Container(
+            width: 6,
+            height: 6,
+            decoration: const BoxDecoration(
+              color: AppColors.accent,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'xell $version is available',
+              style: const TextStyle(
+                color: AppColors.textMuted,
+                fontSize: 12,
+              ),
+            ),
+          ),
+          GestureDetector(
+            onTap: () => launchUrl(
+              Uri.parse(releasesUrl),
+              mode: LaunchMode.externalApplication,
+            ),
+            child: const Text(
+              'Download',
+              style: TextStyle(
+                color: AppColors.accent,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+          GestureDetector(
+            onTap: onDismiss,
+            child: const Icon(Icons.close, size: 14, color: AppColors.textMuted),
+          ),
+        ],
       ),
     );
   }

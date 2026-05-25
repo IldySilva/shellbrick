@@ -1,6 +1,6 @@
 #!/bin/bash
 # Xell installer
-# Usage: curl -fsSL https://raw.githubusercontent.com/ildysilva/xell/main/install.sh | bash
+# Usage: curl -fsSL https://raw.githubusercontent.com/IldySilva/xell/master/install.sh | bash
 # Or:    ./install.sh [--version v0.1.0]
 
 set -euo pipefail
