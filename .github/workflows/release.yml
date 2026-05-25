@@ -135,12 +135,10 @@ jobs:
 
       - name: Generate changelog
         id: changelog
-        uses: orhun/git-cliff-action@v3
-        with:
-          config: cliff.toml
-          args: --latest --strip header
-        env:
-          OUTPUT: CHANGELOG_LATEST.md
+        run: |
+          curl -sSfL https://github.com/orhun/git-cliff/releases/latest/download/git-cliff-x86_64-unknown-linux-musl.tar.gz \
+            | tar -xz --strip-components=1 git-cliff-x86_64-unknown-linux-musl/git-cliff
+          ./git-cliff --config cliff.toml --latest --strip header --output CHANGELOG_LATEST.md
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
