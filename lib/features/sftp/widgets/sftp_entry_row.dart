@@ -6,6 +6,7 @@ class SftpEntryRow extends StatefulWidget {
   final SftpEntry entry;
   final VoidCallback onTap;
   final VoidCallback onDownload;
+  final VoidCallback? onEdit;
   final VoidCallback onRename;
   final VoidCallback onDelete;
 
@@ -14,6 +15,7 @@ class SftpEntryRow extends StatefulWidget {
     required this.entry,
     required this.onTap,
     required this.onDownload,
+    this.onEdit,
     required this.onRename,
     required this.onDelete,
   });
@@ -71,12 +73,19 @@ class _SftpEntryRowState extends State<SftpEntryRow> {
                 ),
               ),
               if (_hovered) ...[
-                if (!entry.isDirectory)
+                if (!entry.isDirectory) ...[
                   _ActionButton(
                     icon: Icons.download_outlined,
                     tooltip: 'Download',
                     onTap: widget.onDownload,
                   ),
+                  if (widget.onEdit != null)
+                    _ActionButton(
+                      icon: Icons.edit_outlined,
+                      tooltip: 'Edit',
+                      onTap: widget.onEdit!,
+                    ),
+                ],
                 _ActionButton(
                   icon: Icons.drive_file_rename_outline,
                   tooltip: 'Rename',

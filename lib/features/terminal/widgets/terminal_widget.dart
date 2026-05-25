@@ -89,6 +89,23 @@ class _ConnectedView extends StatefulWidget {
 
 class _ConnectedViewState extends State<_ConnectedView> {
   final _xtermController = xterm_ui.TerminalController();
+  late TerminalStyle _textStyle;
+
+  @override
+  void initState() {
+    super.initState();
+    _textStyle = TerminalStyle(
+        fontSize: widget.fontSize, fontFamily: 'monospace');
+  }
+
+  @override
+  void didUpdateWidget(_ConnectedView old) {
+    super.didUpdateWidget(old);
+    if (old.fontSize != widget.fontSize) {
+      _textStyle = TerminalStyle(
+          fontSize: widget.fontSize, fontFamily: 'monospace');
+    }
+  }
 
   @override
   void dispose() {
@@ -136,14 +153,15 @@ class _ConnectedViewState extends State<_ConnectedView> {
             },
           ),
         },
-        child: TerminalView(
-          terminal,
-          controller: _xtermController,
-          theme: widget.terminalTheme,
-          textStyle: TerminalStyle(
-              fontSize: widget.fontSize, fontFamily: 'monospace'),
-          autofocus: widget.autofocus,
-          padding: const EdgeInsets.all(AppSpacing.s8),
+        child: RepaintBoundary(
+          child: TerminalView(
+            terminal,
+            controller: _xtermController,
+            theme: widget.terminalTheme,
+            textStyle: _textStyle,
+            autofocus: widget.autofocus,
+            padding: const EdgeInsets.all(AppSpacing.s8),
+          ),
         ),
       ),
     );

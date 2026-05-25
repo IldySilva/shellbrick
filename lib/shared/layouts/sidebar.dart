@@ -31,6 +31,7 @@ class Sidebar extends StatelessWidget {
     (icon: Icons.terminal_outlined, label: 'Terminal'),
     (icon: Icons.folder_open_outlined, label: 'SFTP'),
     (icon: Icons.alt_route_outlined, label: 'Tunnels'),
+    (icon: Icons.code_outlined, label: 'Snippets'),
   ];
 
   @override
@@ -62,7 +63,7 @@ class Sidebar extends StatelessWidget {
           _NavItem(
             icon: Icons.settings_outlined,
             label: 'Settings',
-            isSelected: selectedIndex == 4,
+            isSelected: selectedIndex == 5,
             isCollapsed: isCollapsed,
             onTap: onSettingsTap,
           ),

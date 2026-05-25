@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:xterm/xterm.dart' hide TerminalController;
 import '../../../app/app_theme.dart';
+import '../../../features/snippets/controllers/snippet_controller.dart';
+import '../controllers/command_history_controller.dart';
 import '../controllers/terminal_controller.dart';
 import '../models/terminal_session.dart';
+import '../models/terminal_theme_presets.dart';
 import '../models/workspace.dart';
+import '../widgets/terminal_right_sidebar.dart';
 import '../widgets/terminal_tab_bar.dart';
 import '../widgets/terminal_widget.dart';
 
@@ -14,6 +18,12 @@ class TerminalPage extends StatefulWidget {
   final Future<void> Function(String id)? onCloseSession;
   final Future<void> Function(String sessionId)? onReconnect;
   final VoidCallback? onNewTab;
+  final SnippetController? snippetController;
+  final CommandHistoryController? historyController;
+  final ValueNotifier<TerminalThemeName>? themeNotifier;
+  final ValueChanged<TerminalThemeName>? onThemeChanged;
+  final void Function(String command)? onPaste;
+  final void Function(String command)? onRun;
 
   const TerminalPage({
     super.key,
@@ -47,6 +57,12 @@ class TerminalPage extends StatefulWidget {
     this.onCloseSession,
     this.onReconnect,
     this.onNewTab,
+    this.snippetController,
+    this.historyController,
+    this.themeNotifier,
+    this.onThemeChanged,
+    this.onPaste,
+    this.onRun,
   });
 
   @override
@@ -59,6 +75,7 @@ class _TerminalPageState extends State<TerminalPage> {
   String? _renamingWorkspaceId;
   final _renameController = TextEditingController();
   final _renameFocus = FocusNode();
+  bool _sidebarOpen = false;
 
   TerminalController get _c => widget.controller;
 
@@ -120,30 +137,30 @@ class _TerminalPageState extends State<TerminalPage> {
                     .where((s) => s.workspaceId == activeWsId)
                     .toList();
 
-                return Column(
-                  children: [
-                    if (showWorkspaceBar)
-                      _WorkspaceBar(
-                        workspaces: workspaces,
-                        activeWorkspaceId: activeWsId,
-                        renamingId: _renamingWorkspace
-                            ? _renamingWorkspaceId
-                            : null,
-                        renameController: _renameController,
-                        renameFocus: _renameFocus,
-                        onSwitch: _c.switchWorkspace,
-                        onAdd: () => _c.createWorkspace('New Workspace'),
-                        onDoubleClick: _startRename,
-                        onRenameCommit: _commitRename,
-                        onDelete: _c.deleteWorkspace,
-                      ),
-                    ValueListenableBuilder<String?>(
-                      valueListenable: _c.activeSessionIdNotifier,
-                      builder: (context, activeId, _) {
-                        return ValueListenableBuilder<Axis?>(
-                          valueListenable: _c.splitAxisNotifier,
-                          builder: (context, splitAxis, _) {
-                            return TerminalTabBar(
+                return ValueListenableBuilder<String?>(
+                  valueListenable: _c.activeSessionIdNotifier,
+                  builder: (context, activeId, _) {
+                    return ValueListenableBuilder<Axis?>(
+                      valueListenable: _c.splitAxisNotifier,
+                      builder: (context, splitAxis, _) {
+                        return Column(
+                          children: [
+                            if (showWorkspaceBar)
+                              _WorkspaceBar(
+                                workspaces: workspaces,
+                                activeWorkspaceId: activeWsId,
+                                renamingId: _renamingWorkspace
+                                    ? _renamingWorkspaceId
+                                    : null,
+                                renameController: _renameController,
+                                renameFocus: _renameFocus,
+                                onSwitch: _c.switchWorkspace,
+                                onAdd: () => _c.createWorkspace('New Workspace'),
+                                onDoubleClick: _startRename,
+                                onRenameCommit: _commitRename,
+                                onDelete: _c.deleteWorkspace,
+                              ),
+                            TerminalTabBar(
                               sessions: wsSessions,
                               activeSessionId: activeId,
                               splitAxis: splitAxis,
@@ -153,13 +170,38 @@ class _TerminalPageState extends State<TerminalPage> {
                               onSplitHorizontal: _c.splitHorizontal,
                               onSplitVertical: _c.splitVertical,
                               onCloseSplit: _c.closeSplit,
-                            );
-                          },
+                              onToggleSidebar: widget.snippetController != null
+                                  ? () => setState(() => _sidebarOpen = !_sidebarOpen)
+                                  : null,
+                              sidebarOpen: _sidebarOpen,
+                            ),
+                            Expanded(
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: _buildTerminalArea(
+                                      wsSessions,
+                                      activeId: activeId,
+                                      splitAxis: splitAxis,
+                                    ),
+                                  ),
+                                  if (_sidebarOpen && widget.snippetController != null)
+                                    TerminalRightSidebar(
+                                      snippetController: widget.snippetController!,
+                                      historyController: widget.historyController!,
+                                      themeNotifier: widget.themeNotifier!,
+                                      onThemeChanged: widget.onThemeChanged!,
+                                      onPaste: widget.onPaste ?? (_) {},
+                                      onRun: widget.onRun ?? (_) {},
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ],
                         );
                       },
-                    ),
-                    Expanded(child: _buildTerminalArea(wsSessions)),
-                  ],
+                    );
+                  },
                 );
               },
             );
@@ -169,56 +211,49 @@ class _TerminalPageState extends State<TerminalPage> {
     );
   }
 
-  Widget _buildTerminalArea(List<TerminalSession> wsSessions) {
+  Widget _buildTerminalArea(
+    List<TerminalSession> wsSessions, {
+    required String? activeId,
+    required Axis? splitAxis,
+  }) {
     return ValueListenableBuilder<String?>(
-      valueListenable: _c.activeSessionIdNotifier,
-      builder: (context, activeId, _) {
-        return ValueListenableBuilder<Axis?>(
-          valueListenable: _c.splitAxisNotifier,
-          builder: (context, splitAxis, _) {
-            return ValueListenableBuilder<String?>(
-              valueListenable: _c.splitSessionIdNotifier,
-              builder: (context, splitId, _) {
-                final primary = _c.activeSession;
-                final secondary = _c.splitSession;
+      valueListenable: _c.splitSessionIdNotifier,
+      builder: (context, splitId, _) {
+        final primary = _c.activeSession;
+        final secondary = _c.splitSession;
 
-                if (splitAxis == null || secondary == null) {
-                  return primary == null
-                      ? const _EmptyTerminalState()
-                      : _pane(primary, focused: true);
-                }
+        if (splitAxis == null || secondary == null) {
+          return primary == null
+              ? const _EmptyTerminalState()
+              : _pane(primary, focused: true);
+        }
 
-                return ValueListenableBuilder<double>(
-                  valueListenable: _splitRatioNotifier,
-                  builder: (context, ratio, _) {
-                    return ValueListenableBuilder<int>(
-                      valueListenable: _c.activePaneNotifier,
-                      builder: (context, activePane, _) {
-                        return _SplitLayout(
-                          axis: splitAxis,
-                          ratio: ratio,
-                          onRatioChanged: (r) =>
-                              _splitRatioNotifier.value = r,
-                          primary: GestureDetector(
-                            onTap: () => _c.focusPane(0),
-                            child: _pane(
-                              primary!,
-                              focused: activePane == 0,
-                              showFocusBorder: true,
-                            ),
-                          ),
-                          secondary: GestureDetector(
-                            onTap: () => _c.focusPane(1),
-                            child: _pane(
-                              secondary,
-                              focused: activePane == 1,
-                              showFocusBorder: true,
-                            ),
-                          ),
-                        );
-                      },
-                    );
-                  },
+        return ValueListenableBuilder<double>(
+          valueListenable: _splitRatioNotifier,
+          builder: (context, ratio, _) {
+            return ValueListenableBuilder<int>(
+              valueListenable: _c.activePaneNotifier,
+              builder: (context, activePane, _) {
+                return _SplitLayout(
+                  axis: splitAxis,
+                  ratio: ratio,
+                  onRatioChanged: (r) => _splitRatioNotifier.value = r,
+                  primary: GestureDetector(
+                    onTap: () => _c.focusPane(0),
+                    child: _pane(
+                      primary!,
+                      focused: activePane == 0,
+                      showFocusBorder: true,
+                    ),
+                  ),
+                  secondary: GestureDetector(
+                    onTap: () => _c.focusPane(1),
+                    child: _pane(
+                      secondary,
+                      focused: activePane == 1,
+                      showFocusBorder: true,
+                    ),
+                  ),
                 );
               },
             );

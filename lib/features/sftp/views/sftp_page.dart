@@ -2,6 +2,8 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import '../../../app/app_theme.dart';
+import '../../remote_editor/controllers/remote_editor_controller.dart';
+import '../../remote_editor/views/remote_file_editor_page.dart';
 import '../../terminal/controllers/terminal_controller.dart';
 import '../../terminal/models/terminal_session.dart';
 import '../controllers/sftp_controller.dart';
@@ -100,6 +102,25 @@ class _SftpPageState extends State<SftpPage> {
     await _controller.rename(entry, newName.trim());
   }
 
+  void _handleEdit(SftpEntry entry) {
+    final sftp = _controller.sftp;
+    if (sftp == null) return;
+    final editorController =
+        RemoteEditorController(sftp: sftp, path: entry.path);
+    if (Platform.isIOS || Platform.isAndroid) {
+      Navigator.of(context).push(MaterialPageRoute(
+        builder: (_) =>
+            RemoteFileEditorPage(controller: editorController),
+      ));
+    } else {
+      showDialog<void>(
+        context: context,
+        builder: (_) =>
+            RemoteFileEditorPage(controller: editorController),
+      );
+    }
+  }
+
   Future<void> _handleDelete(SftpEntry entry) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -137,6 +158,7 @@ class _SftpPageState extends State<SftpPage> {
             Expanded(child: _SftpBrowser(
               controller: _controller,
               onDownload: _handleDownload,
+              onEdit: _handleEdit,
               onRename: _handleRename,
               onDelete: _handleDelete,
             )),
@@ -307,12 +329,14 @@ class _UploadButton extends StatelessWidget {
 class _SftpBrowser extends StatelessWidget {
   final SftpController controller;
   final Future<void> Function(SftpEntry) onDownload;
+  final void Function(SftpEntry) onEdit;
   final Future<void> Function(SftpEntry) onRename;
   final Future<void> Function(SftpEntry) onDelete;
 
   const _SftpBrowser({
     required this.controller,
     required this.onDownload,
+    required this.onEdit,
     required this.onRename,
     required this.onDelete,
   });
@@ -364,6 +388,7 @@ class _SftpBrowser extends StatelessWidget {
                           entry: entry,
                           onTap: () => controller.navigate(entry.path),
                           onDownload: () => onDownload(entry),
+                          onEdit: entry.isDirectory ? null : () => onEdit(entry),
                           onRename: () => onRename(entry),
                           onDelete: () => onDelete(entry),
                         );

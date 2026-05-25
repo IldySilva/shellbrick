@@ -7,6 +7,7 @@ class SftpController {
   final _service = SftpService();
 
   SftpClient? _sftp;
+  SftpClient? get sftp => _sftp;
   bool _disposed = false;
 
   final entriesNotifier = ValueNotifier<List<SftpEntry>>([]);

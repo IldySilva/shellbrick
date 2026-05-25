@@ -196,14 +196,14 @@ Support:
 - ANSI colors
 - UTF-8
 - resizing
-- copy/paste
+- copy/paste/select-all (platform-native shortcuts: ⌘C/V/A on macOS, Ctrl+C/V/A on Linux)
 - keyboard shortcuts
 
 ### Session Management
 
 Support:
-- tabs
-- split panes
+- tabs (with + button to open new connection directly from tab bar)
+- split panes (horizontal and vertical)
 - detached windows
 
 ### Connection Recovery
@@ -309,23 +309,33 @@ Default:
 
 ## Description
 
-Reusable command library.
+Reusable command library for frequently-used shell commands.
 
 ## Functional Requirements
 
 ### Features
 
 User can:
-- save snippets
-- organize snippets
-- execute snippets
-- copy snippets
+- save snippets with title, command, optional description, and tags
+- search snippets by title, command, or tag
+- run snippets directly into the active SSH terminal session
+- copy snippet commands to clipboard
+- edit and delete snippets
 
-### Variable Support
+### Storage
+
+- Persisted locally with SharedPreferences (JSON)
+- No cloud sync required
+
+### Variable Support (post-MVP)
 
 Examples:
 - `${host}`
 - `${user}`
+
+---
+
+# 5.7 Port Forwarding
 
 ---
 
@@ -355,7 +365,7 @@ User can:
 
 ## Description
 
-Simple remote file explorer.
+Simple remote file explorer with inline editing.
 
 ## Functional Requirements
 
@@ -367,6 +377,7 @@ Support:
 - download
 - rename
 - delete
+- edit (opens Remote File Editor overlay)
 
 ### Exclusions
 
@@ -374,6 +385,77 @@ MVP excludes:
 - file syncing
 - diff comparison
 - advanced sync strategies
+
+---
+
+# 5.9 Process Monitor
+
+## Description
+
+Live system resource dashboard for the active SSH session.
+
+## Functional Requirements
+
+### System Stats
+
+Display:
+- CPU usage percentage with colour-coded progress bar
+- Memory used / total (MB) with percentage
+- Disk usage per mounted filesystem
+
+### Process List
+
+Display:
+- PID, CPU%, MEM%, command name per process
+- Sorted by CPU% descending
+- Filterable by command, user, or PID
+- Auto-refresh every 5 seconds while session is connected
+
+### Colour Coding
+
+- CPU ≥ 50% → red
+- CPU ≥ 20% → amber
+- Disk ≥ 90% → red
+- Disk ≥ 70% → amber
+
+### Data Source
+
+Runs `ps aux`, `free -m`, `df -h` over SSH using `SSHClient.execute`.
+
+---
+
+# 5.10 Remote File Editor
+
+## Description
+
+Lightweight in-app text editor for remote files accessed over SFTP.
+
+## Functional Requirements
+
+### Editing
+
+- Opens a file by reading it fully into memory over SFTP
+- Presents a monospace text editor within the app
+- Saves changes back to the remote file using SFTP write/truncate
+
+### UX
+
+- Dirty-state indicator (● dot in title bar when unsaved changes exist)
+- ⌘S / Ctrl+S to save
+- Discard confirmation dialog on close with unsaved changes
+- Save success snackbar confirmation
+
+### Integration
+
+- Accessible via "Edit" action on any file in the SFTP browser
+- Opens as a dialog on desktop; as a full page on mobile
+
+### Exclusions
+
+MVP excludes:
+- syntax highlighting
+- multiple open files
+- diff/merge views
 
 ---
 
@@ -502,18 +584,21 @@ Riverpod
 ## macOS
 
 Use:
-- Swift platform channels
+- Flutter `PlatformMenuBar` for native menu bar
 
 Integrations:
-- Keychain
-- Touch ID
-- menu bar support
+- Keychain (via flutter_secure_storage)
+- Native menu bar: File (New Connection, Close Tab, Settings), Window (Toggle Full Screen), Help (Check for Updates, View on GitHub, What's New, Report a Bug)
+- Platform-aware keyboard shortcuts (⌘K, ⌘N, ⌘W, ⌘,, ⌘D, ⌘⌃F)
 
 ## Linux
 
 Use:
-- DBus
-- Secret Service APIs
+- Flutter `PlatformMenuBar` for native embedded menu bar
+- Secret Service APIs (via flutter_secure_storage)
+
+Integrations:
+- Native menu bar (same structure as macOS, Ctrl-based shortcuts)
 
 ## iOS
 
@@ -660,14 +745,21 @@ Recommended:
 
 ## Infrastructure
 
-- Docker integration
-- Kubernetes integration
+- Docker container management
+- Kubernetes cluster access
 
 ## AI
 
 - command explanations
 - diagnostics
 - infrastructure insights
+- AI-assisted terminal workflows
+
+## DevOps Tools (post-MVP expansion)
+
+- Log streaming and filtering
+- Scheduled command runner
+- Multi-host command broadcast
 
 ## Plugins
 

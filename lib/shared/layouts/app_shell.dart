@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -22,6 +23,9 @@ import '../../features/hosts/views/ssh_config_import_dialog.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/update_service.dart';
+import '../../features/snippets/controllers/snippet_controller.dart';
+import '../../features/snippets/views/snippet_list_page.dart';
+import '../../features/terminal/controllers/command_history_controller.dart';
 import '../../features/terminal/models/terminal_theme_presets.dart';
 import '../../features/terminal/views/credential_prompt_dialog.dart';
 import '../../features/terminal/views/terminal_page.dart';
@@ -51,8 +55,11 @@ class _AppShellState extends State<AppShell> with WindowListener {
   late final TerminalController _terminalController;
   late final SettingsController _settingsController;
   late final TunnelController _tunnelController;
+  late final SnippetController _snippetController;
+  late final CommandHistoryController _historyController;
   final _credentials = CredentialStorage();
   final _updateNotifier = ValueNotifier<String?>(null);
+  StreamSubscription<String>? _commandStreamSub;
 
   @override
   void initState() {
@@ -62,18 +69,30 @@ class _AppShellState extends State<AppShell> with WindowListener {
     _terminalController = TerminalController();
     _settingsController = SettingsController()..load();
     _tunnelController = TunnelController();
+    _snippetController = SnippetController();
+    _historyController = CommandHistoryController();
     _terminalController.activeSessionIdNotifier.addListener(_updateWindowTitle);
+    _commandStreamSub = _terminalController.commandTypedStream
+        .listen((cmd) => _historyController.add(cmd));
+    // Defer non-critical loads until after first frame.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _snippetController.load();
+      _historyController.load();
+    });
     UpdateService.checkForUpdate().then((v) => _updateNotifier.value = v);
   }
 
   @override
   void dispose() {
+    _commandStreamSub?.cancel();
     _terminalController.activeSessionIdNotifier.removeListener(_updateWindowTitle);
     if (_isDesktop) windowManager.removeListener(this);
     _hostController.dispose();
     _terminalController.dispose();
     _settingsController.dispose();
     _tunnelController.dispose();
+    _snippetController.dispose();
+    _historyController.dispose();
     _updateNotifier.dispose();
     super.dispose();
   }
@@ -127,7 +146,7 @@ class _AppShellState extends State<AppShell> with WindowListener {
       SingleActivator(LogicalKeyboardKey.keyN, meta: mac, control: !mac):
           _showCommandPalette,
       SingleActivator(LogicalKeyboardKey.comma, meta: mac, control: !mac):
-          () => setState(() => _selectedIndex = 4),
+          () => setState(() => _selectedIndex = 5),
       if (mac)
         const SingleActivator(
           LogicalKeyboardKey.keyF,
@@ -177,7 +196,7 @@ class _AppShellState extends State<AppShell> with WindowListener {
       pageBuilder: (ctx, _, _) => CommandPalette(
         hosts: _hostController.hostsNotifier.value,
         onConnect: _handleConnect,
-        onOpenSettings: () => setState(() => _selectedIndex = 4),
+        onOpenSettings: () => setState(() => _selectedIndex = 5),
         onCreateHost: () {
           setState(() => _selectedIndex = 0);
           WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -309,6 +328,17 @@ class _AppShellState extends State<AppShell> with WindowListener {
               },
               onReconnect: _handleReconnect,
               onNewTab: _showCommandPalette,
+              snippetController: _snippetController,
+              historyController: _historyController,
+              themeNotifier: _settingsController.terminalThemeNotifier,
+              onThemeChanged: _settingsController.setTerminalTheme,
+              onPaste: (cmd) =>
+                  _terminalController.activeSession?.xterm?.paste(cmd),
+              onRun: (cmd) {
+                _historyController.add(cmd);
+                _terminalController.activeSession?.xterm
+                    ?.paste(cmd.endsWith('\n') ? cmd : '$cmd\n');
+              },
             ),
           ),
     ),
@@ -317,7 +347,14 @@ class _AppShellState extends State<AppShell> with WindowListener {
       controller: _tunnelController,
       terminalController: _terminalController,
     ),
-    4 => SettingsPage(controller: _settingsController),
+    4 => SnippetListPage(
+      controller: _snippetController,
+      onRun: (cmd) {
+        final session = _terminalController.activeSession;
+        session?.xterm?.paste(cmd.endsWith('\n') ? cmd : '$cmd\n');
+      },
+    ),
+    5 => SettingsPage(controller: _settingsController),
     _ => const _PlaceholderPage(),
   };
 
@@ -394,7 +431,7 @@ class _AppShellState extends State<AppShell> with WindowListener {
                   label: 'Settings',
                   shortcut: const SingleActivator(
                       LogicalKeyboardKey.comma, meta: true),
-                  onSelected: () => setState(() => _selectedIndex = 4),
+                  onSelected: () => setState(() => _selectedIndex = 5),
                 ),
               ],
             ),
@@ -465,7 +502,7 @@ class _AppShellState extends State<AppShell> with WindowListener {
               selectedIndex: _selectedIndex,
               isCollapsed: _sidebarCollapsed,
               onItemSelected: (i) => setState(() => _selectedIndex = i),
-              onSettingsTap: () => setState(() => _selectedIndex = 4),
+              onSettingsTap: () => setState(() => _selectedIndex = 5),
               onToggleCollapse: () =>
                   setState(() => _sidebarCollapsed = !_sidebarCollapsed),
             ),
@@ -478,7 +515,7 @@ class _AppShellState extends State<AppShell> with WindowListener {
                   valueListenable: _terminalController.activeSessionIdNotifier,
                   builder: (context, sessionId, child) => TopBar(
                     onCommandPaletteTap: _showCommandPalette,
-                    onSettingsTap: () => setState(() => _selectedIndex = 4),
+                    onSettingsTap: () => setState(() => _selectedIndex = 5),
                     isFullScreen: _isFullScreen,
                     onToggleFullscreen: _toggleFullscreen,
                     activeSession:
@@ -504,7 +541,7 @@ class _AppShellState extends State<AppShell> with WindowListener {
   Widget _buildMobile() {
     // Settings lives at index 4 but the bottom nav only has 4 items (0-3).
     // We handle tapping the settings icon via a dedicated nav item at index 4.
-    final navIndex = _selectedIndex.clamp(0, 4);
+    final navIndex = _selectedIndex.clamp(0, 5);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -549,6 +586,7 @@ class _MobileNavBar extends StatelessWidget {
     (icon: Icons.terminal_outlined, label: 'Terminal'),
     (icon: Icons.folder_open_outlined, label: 'SFTP'),
     (icon: Icons.alt_route_outlined, label: 'Tunnels'),
+    (icon: Icons.code_outlined, label: 'Snippets'),
     (icon: Icons.settings_outlined, label: 'Settings'),
   ];
 

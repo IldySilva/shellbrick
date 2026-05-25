@@ -31,8 +31,8 @@
 - [ ] Configure lints
 - [ ] Configure formatting rules
 - [ ] Configure analysis options
-- [ ] Configure CI workflow
-- [ ] Setup release builds
+- [x] Configure CI workflow
+- [x] Setup release builds (macOS DMG + Linux tar.gz via GitHub Actions)
 - [ ] Setup debug profiles
 
 ---
@@ -242,6 +242,7 @@
 - [x] Pipe terminal input to SSH
 - [x] Handle terminal resize
 - [x] Handle ANSI escape sequences
+- [x] Copy/paste/select-all on all platforms (⌘C/V/A on macOS, Ctrl+C/V/A on Linux/Windows)
 
 ---
 
@@ -260,6 +261,7 @@
 - [x] Add session tabs
 - [x] Switch tabs
 - [x] Close tabs
+- [x] Add + button in tab bar to open a new connection
 
 ---
 
@@ -357,6 +359,7 @@
 - [x] Add file list
 - [x] Add upload action
 - [x] Add download action
+- [x] Add edit action (opens Remote File Editor)
 
 ---
 
@@ -422,8 +425,9 @@
 
 - [x] Keychain integration
 - [x] Native title bar behavior
-- [x] Native shortcuts
+- [x] Native shortcuts (⌘K, ⌘N, ⌘W, ⌘,, ⌘D, ⌘⌃F)
 - [x] Dock integration
+- [x] Native menu bar (File / Window / Help menus)
 
 ---
 
@@ -432,6 +436,7 @@
 - [x] Secret Service integration
 - [ ] DBus support
 - [x] Desktop entry support
+- [x] Native menu bar (same menus, Ctrl-based shortcuts)
 
 ---
 
@@ -509,7 +514,116 @@
 
 ---
 
-# 18. MVP Completion Criteria
+# 17b. Update & Support
+
+## In-App Update Notifications
+
+- [x] Check GitHub releases API for newer version
+- [x] Show update banner when new version is available
+- [x] Link directly to releases page
+- [x] Dismiss banner action
+
+---
+
+## Report a Bug
+
+- [x] Report a Bug shortcut in native menu bar (Help menu)
+- [x] Report a Bug section in Settings page
+- [x] Opens GitHub Issues new-issue URL
+
+---
+
+# 18. Snippet Library
+
+## Data Model
+
+- [x] Create `Snippet` model (id, title, command, description, tags)
+- [x] Add JSON serialization / deserialization
+- [x] Add `copyWith` and ID generation
+
+---
+
+## Storage
+
+- [x] Persist snippets with SharedPreferences
+- [x] Load snippets on startup
+
+---
+
+## Controller
+
+- [x] `SnippetController` with `ValueNotifier`
+- [x] `add`, `update`, `delete`, `load` actions
+
+---
+
+## UI
+
+- [x] Snippet list page with search (by title, command, tag)
+- [x] Snippet card with hover actions (Run ▶, Copy, Edit, Delete)
+- [x] Tag badges
+- [x] Monospace command preview
+- [x] Snippet form dialog (desktop) / page (mobile)
+- [x] Run snippet directly into active SSH terminal session
+
+---
+
+# 18b. Process Monitor
+
+## Service
+
+- [x] Run `ps aux`, `free -m`, `df -h` over SSH using `SSHClient.execute`
+- [x] Parse process list, system memory, disk usage
+
+---
+
+## Controller
+
+- [x] `ProcessMonitorController` with 5-second polling interval
+- [x] Attach/detach to active SSH session automatically
+- [x] Manual refresh action
+
+---
+
+## UI
+
+- [x] CPU and RAM gauges with colour-coded progress bars
+- [x] Filterable process list (by command, user, PID) sorted by CPU%
+- [x] Colour-coded CPU column (warn at 20%, danger at 50%)
+- [x] Disk tab with per-mount usage cards
+- [x] Empty state when no session is active
+
+---
+
+# 18c. Remote File Editor
+
+## Controller
+
+- [x] `RemoteEditorController` — reads/writes files over SFTP
+- [x] Dirty state tracking (unsaved changes indicator)
+
+---
+
+## UI
+
+- [x] Full-screen editor dialog (desktop) / page (mobile)
+- [x] Monospace text editing with ⌘S / Ctrl+S to save
+- [x] Unsaved-changes discard confirmation
+- [x] Save success snackbar
+- [x] Error banner for read/write failures
+- [x] Integrated into SFTP browser via "Edit" action on files
+
+---
+
+# 18d. Navigation
+
+- [x] Added Snippets (index 4) to sidebar and mobile nav
+- [x] Added Process Monitor (index 5) to sidebar and mobile nav
+- [x] Settings moved to index 6
+
+---
+
+# 19. MVP Completion Criteria
 
 The MVP is complete when users can:
 
@@ -521,6 +635,9 @@ The MVP is complete when users can:
 - [x] Use keyboard-first workflows
 - [x] Use SFTP
 - [x] Use port forwarding
+- [x] Manage command snippets and run them in the terminal
+- [x] Monitor remote processes and system resources
+- [x] Edit remote files directly over SFTP
 - [ ] Use the app daily reliably
 
 ---

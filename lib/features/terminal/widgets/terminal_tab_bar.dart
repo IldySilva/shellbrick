@@ -14,6 +14,8 @@ class TerminalTabBar extends StatelessWidget {
   final VoidCallback? onSplitHorizontal;
   final VoidCallback? onSplitVertical;
   final VoidCallback? onCloseSplit;
+  final VoidCallback? onToggleSidebar;
+  final bool sidebarOpen;
 
   const TerminalTabBar({
     super.key,
@@ -26,6 +28,8 @@ class TerminalTabBar extends StatelessWidget {
     this.onSplitHorizontal,
     this.onSplitVertical,
     this.onCloseSplit,
+    this.onToggleSidebar,
+    this.sidebarOpen = false,
   });
 
   @override
@@ -59,6 +63,8 @@ class TerminalTabBar extends StatelessWidget {
             onSplitHorizontal: onSplitHorizontal,
             onSplitVertical: onSplitVertical,
             onCloseSplit: onCloseSplit,
+            onToggleSidebar: onToggleSidebar,
+            sidebarOpen: sidebarOpen,
           ),
         ],
       ),
@@ -73,12 +79,16 @@ class _SplitControls extends StatelessWidget {
   final VoidCallback? onSplitHorizontal;
   final VoidCallback? onSplitVertical;
   final VoidCallback? onCloseSplit;
+  final VoidCallback? onToggleSidebar;
+  final bool sidebarOpen;
 
   const _SplitControls({
     this.splitAxis,
     this.onSplitHorizontal,
     this.onSplitVertical,
     this.onCloseSplit,
+    this.onToggleSidebar,
+    this.sidebarOpen = false,
   });
 
   @override
@@ -111,6 +121,17 @@ class _SplitControls extends StatelessWidget {
             onTap: onSplitVertical,
             active: splitAxis == Axis.vertical,
           ),
+          if (onToggleSidebar != null) ...[
+            const SizedBox(width: 2),
+            Container(width: 1, height: 14, color: AppColors.border),
+            const SizedBox(width: 2),
+            _SplitIconButton(
+              icon: Icons.code_outlined,
+              tooltip: sidebarOpen ? 'Close panel' : 'Open panel',
+              onTap: onToggleSidebar,
+              active: sidebarOpen,
+            ),
+          ],
         ],
       ),
     );
