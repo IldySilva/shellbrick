@@ -13,6 +13,7 @@ class TerminalPage extends StatefulWidget {
   final TerminalTheme terminalTheme;
   final Future<void> Function(String id)? onCloseSession;
   final Future<void> Function(String sessionId)? onReconnect;
+  final VoidCallback? onNewTab;
 
   const TerminalPage({
     super.key,
@@ -45,6 +46,7 @@ class TerminalPage extends StatefulWidget {
     ),
     this.onCloseSession,
     this.onReconnect,
+    this.onNewTab,
   });
 
   @override
@@ -147,6 +149,7 @@ class _TerminalPageState extends State<TerminalPage> {
                               splitAxis: splitAxis,
                               onSelectSession: _c.setActiveSession,
                               onCloseSession: _closeSession,
+                              onNewTab: widget.onNewTab,
                               onSplitHorizontal: _c.splitHorizontal,
                               onSplitVertical: _c.splitVertical,
                               onCloseSplit: _c.closeSplit,

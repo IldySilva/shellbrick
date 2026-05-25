@@ -124,6 +124,8 @@ class _AppShellState extends State<AppShell> with WindowListener {
     return {
       SingleActivator(LogicalKeyboardKey.keyK, meta: mac, control: !mac):
           _showCommandPalette,
+      SingleActivator(LogicalKeyboardKey.keyN, meta: mac, control: !mac):
+          _showCommandPalette,
       if (mac)
         const SingleActivator(
           LogicalKeyboardKey.keyF,
@@ -304,6 +306,7 @@ class _AppShellState extends State<AppShell> with WindowListener {
                 await _tunnelController.closeForSession(id);
               },
               onReconnect: _handleReconnect,
+              onNewTab: _showCommandPalette,
             ),
           ),
     ),
@@ -328,14 +331,37 @@ class _AppShellState extends State<AppShell> with WindowListener {
     ),
   );
 
+  static final _issuesUri =
+      Uri.parse('https://github.com/IldySilva/xell/issues/new');
+
   @override
   Widget build(BuildContext context) {
-    return CallbackShortcuts(
+    final content = CallbackShortcuts(
       bindings: _shortcuts,
       child: Focus(
         autofocus: true,
         child: _isDesktop ? _buildDesktop() : _buildMobile(),
       ),
+    );
+
+    if (!Platform.isMacOS) return content;
+
+    return PlatformMenuBar(
+      menus: [
+        PlatformMenu(
+          label: 'Help',
+          menus: [
+            PlatformMenuItem(
+              label: 'Report a Bug',
+              onSelected: () => launchUrl(
+                _issuesUri,
+                mode: LaunchMode.externalApplication,
+              ),
+            ),
+          ],
+        ),
+      ],
+      child: content,
     );
   }
 

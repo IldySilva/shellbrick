@@ -8,6 +8,7 @@ class TerminalTabBar extends StatelessWidget {
   final Axis? splitAxis;
   final ValueChanged<String> onSelectSession;
   final ValueChanged<String> onCloseSession;
+  final VoidCallback? onNewTab;
   final VoidCallback? onSplitHorizontal;
   final VoidCallback? onSplitVertical;
   final VoidCallback? onCloseSplit;
@@ -19,6 +20,7 @@ class TerminalTabBar extends StatelessWidget {
     required this.onSelectSession,
     required this.onCloseSession,
     this.splitAxis,
+    this.onNewTab,
     this.onSplitHorizontal,
     this.onSplitVertical,
     this.onCloseSplit,
@@ -37,16 +39,17 @@ class TerminalTabBar extends StatelessWidget {
           Expanded(
             child: ListView(
               scrollDirection: Axis.horizontal,
-              children: sessions
-                  .map(
-                    (s) => _Tab(
-                      session: s,
-                      isActive: s.id == activeSessionId,
-                      onTap: () => onSelectSession(s.id),
-                      onClose: () => onCloseSession(s.id),
-                    ),
-                  )
-                  .toList(),
+              children: [
+                ...sessions.map(
+                  (s) => _Tab(
+                    session: s,
+                    isActive: s.id == activeSessionId,
+                    onTap: () => onSelectSession(s.id),
+                    onClose: () => onCloseSession(s.id),
+                  ),
+                ),
+                _NewTabButton(onTap: onNewTab),
+              ],
             ),
           ),
           _SplitControls(
@@ -159,6 +162,44 @@ class _SplitIconButtonState extends State<_SplitIconButton> {
               size: 14,
               color: widget.active ? AppColors.accent : AppColors.textMuted,
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── New tab button ────────────────────────────────────────────────────────────
+
+class _NewTabButton extends StatefulWidget {
+  final VoidCallback? onTap;
+  const _NewTabButton({this.onTap});
+
+  @override
+  State<_NewTabButton> createState() => _NewTabButtonState();
+}
+
+class _NewTabButtonState extends State<_NewTabButton> {
+  bool _hovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: 'New connection',
+      child: MouseRegion(
+        onEnter: (_) => setState(() => _hovered = true),
+        onExit: (_) => setState(() => _hovered = false),
+        cursor: SystemMouseCursors.click,
+        child: GestureDetector(
+          onTap: widget.onTap,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 120),
+            width: 36,
+            height: 36,
+            color: _hovered
+                ? AppColors.border.withValues(alpha: 0.4)
+                : Colors.transparent,
+            child: const Icon(Icons.add, size: 14, color: AppColors.textMuted),
           ),
         ),
       ),

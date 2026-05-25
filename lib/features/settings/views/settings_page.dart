@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../app/app_theme.dart';
+import '../../../core/update_service.dart';
 import '../../terminal/models/terminal_theme_presets.dart';
 import '../controllers/settings_controller.dart';
 
@@ -47,6 +49,13 @@ class SettingsPage extends StatelessWidget {
           title: 'Data',
           children: [
             _ClearDataSetting(controller: controller),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.s32),
+        _Section(
+          title: 'Support',
+          children: [
+            _ReportBugSetting(),
           ],
         ),
         const SizedBox(height: AppSpacing.s48),
@@ -484,6 +493,24 @@ class _DangerButtonState extends State<_DangerButton> {
   }
 }
 
+// ── Report bug ────────────────────────────────────────────────────────────────
+
+class _ReportBugSetting extends StatelessWidget {
+  static final _issuesUri = Uri.parse('https://github.com/IldySilva/xell/issues/new');
+
+  @override
+  Widget build(BuildContext context) {
+    return _SettingRow(
+      label: 'Report a Bug',
+      description: 'Open a new issue on GitHub.',
+      trailing: GestureDetector(
+        onTap: () => launchUrl(_issuesUri, mode: LaunchMode.externalApplication),
+        child: const Icon(Icons.open_in_new, size: 15, color: AppColors.textMuted),
+      ),
+    );
+  }
+}
+
 // ── App info ──────────────────────────────────────────────────────────────────
 
 class _AppInfo extends StatelessWidget {
@@ -503,7 +530,7 @@ class _AppInfo extends StatelessWidget {
         ),
         SizedBox(height: 2),
         Text(
-          'Version 0.1.0 — Open Source SSH Workspace',
+          'Version $kAppVersion — Open Source SSH Workspace',
           style: TextStyle(color: AppColors.textMuted, fontSize: 11),
         ),
       ],

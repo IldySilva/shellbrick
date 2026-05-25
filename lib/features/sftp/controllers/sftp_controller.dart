@@ -23,7 +23,7 @@ class SftpController {
   Future<void> connect(SSHClient client) async {
     _sftp?.close();
     _sftp = null;
-    _set(entriesNotifier, []);
+    _set(entriesNotifier, <SftpEntry>[]);
     _set(currentPathNotifier, '/');
     _set(errorNotifier, null);
 
