@@ -54,6 +54,10 @@ class TopBar extends StatelessWidget {
               onTap: onToggleFullscreen,
             ),
           ],
+          if (Platform.isLinux || Platform.isWindows) ...[
+            const SizedBox(width: AppSpacing.s8),
+            const _WindowControls(),
+          ],
         ],
       ),
     );
@@ -202,6 +206,129 @@ class _TopBarIconButtonState extends State<_TopBarIconButton> {
               widget.icon,
               size: 16,
               color: AppColors.textMuted,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _WindowControls extends StatefulWidget {
+  const _WindowControls();
+
+  @override
+  State<_WindowControls> createState() => _WindowControlsState();
+}
+
+class _WindowControlsState extends State<_WindowControls> with WindowListener {
+  bool _isMaximized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    windowManager.addListener(this);
+    windowManager.isMaximized().then((v) {
+      if (mounted) setState(() => _isMaximized = v);
+    });
+  }
+
+  @override
+  void dispose() {
+    windowManager.removeListener(this);
+    super.dispose();
+  }
+
+  @override
+  void onWindowMaximize() => setState(() => _isMaximized = true);
+
+  @override
+  void onWindowUnmaximize() => setState(() => _isMaximized = false);
+
+  Future<void> _toggleMaximize() async {
+    if (_isMaximized) {
+      await windowManager.unmaximize();
+    } else {
+      await windowManager.maximize();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _WinButton(
+          icon: Icons.remove,
+          tooltip: 'Minimize',
+          onTap: () => windowManager.minimize(),
+        ),
+        const SizedBox(width: 2),
+        _WinButton(
+          icon: _isMaximized ? Icons.filter_none : Icons.crop_square,
+          tooltip: _isMaximized ? 'Restore' : 'Maximize',
+          onTap: _toggleMaximize,
+        ),
+        const SizedBox(width: 2),
+        _WinButton(
+          icon: Icons.close,
+          tooltip: 'Close',
+          onTap: () => windowManager.close(),
+          isClose: true,
+        ),
+      ],
+    );
+  }
+}
+
+class _WinButton extends StatefulWidget {
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback onTap;
+  final bool isClose;
+
+  const _WinButton({
+    required this.icon,
+    required this.tooltip,
+    required this.onTap,
+    this.isClose = false,
+  });
+
+  @override
+  State<_WinButton> createState() => _WinButtonState();
+}
+
+class _WinButtonState extends State<_WinButton> {
+  bool _hovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: widget.tooltip,
+      child: MouseRegion(
+        onEnter: (_) => setState(() => _hovered = true),
+        onExit: (_) => setState(() => _hovered = false),
+        cursor: SystemMouseCursors.click,
+        child: GestureDetector(
+          onTap: widget.onTap,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 120),
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: _hovered
+                  ? (widget.isClose
+                      ? const Color(0xFFE81123)
+                      : AppColors.border.withValues(alpha: 0.6))
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Icon(
+              widget.icon,
+              size: 14,
+              color: _hovered && widget.isClose
+                  ? Colors.white
+                  : AppColors.textMuted,
             ),
           ),
         ),
