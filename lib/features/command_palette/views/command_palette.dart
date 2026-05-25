@@ -74,12 +74,18 @@ class _CommandPaletteState extends State<CommandPalette> {
     switch (event.logicalKey) {
       case LogicalKeyboardKey.arrowDown:
         if (items.isNotEmpty) {
-          setState(() => _focusedIndex = (_focusedIndex + 1).clamp(0, items.length - 1));
+          setState(
+            () =>
+                _focusedIndex = (_focusedIndex + 1).clamp(0, items.length - 1),
+          );
         }
         return KeyEventResult.handled;
       case LogicalKeyboardKey.arrowUp:
         if (items.isNotEmpty) {
-          setState(() => _focusedIndex = (_focusedIndex - 1).clamp(0, items.length - 1));
+          setState(
+            () =>
+                _focusedIndex = (_focusedIndex - 1).clamp(0, items.length - 1),
+          );
         }
         return KeyEventResult.handled;
       case LogicalKeyboardKey.enter:
@@ -103,8 +109,9 @@ class _CommandPaletteState extends State<CommandPalette> {
   }
 
   List<SshHost> get _recentHosts {
-    final withDate = widget.hosts.where((h) => h.lastConnectedAt != null).toList()
-      ..sort((a, b) => b.lastConnectedAt!.compareTo(a.lastConnectedAt!));
+    final withDate =
+        widget.hosts.where((h) => h.lastConnectedAt != null).toList()
+          ..sort((a, b) => b.lastConnectedAt!.compareTo(a.lastConnectedAt!));
     return withDate.take(5).toList();
   }
 
@@ -118,13 +125,15 @@ class _CommandPaletteState extends State<CommandPalette> {
         : widget.hosts.where((h) => h.matchesQuery(_query)).toList();
 
     for (final host in matchingHosts) {
-      items.add(_PaletteItem(
-        label: host.name,
-        subtitle: '${host.username}@${host.hostname}:${host.port}',
-        icon: Icons.terminal_outlined,
-        iconColor: AppColors.accent,
-        onTap: () => _execute(() => widget.onConnect(host)),
-      ));
+      items.add(
+        _PaletteItem(
+          label: host.name,
+          subtitle: '${host.username}@${host.hostname}:${host.port}',
+          icon: Icons.terminal_outlined,
+          iconColor: AppColors.accent,
+          onTap: () => _execute(() => widget.onConnect(host)),
+        ),
+      );
     }
 
     // Static actions — shown always, or only when query matches
@@ -174,11 +183,13 @@ class _CommandPaletteState extends State<CommandPalette> {
     for (final s in statics) {
       final visible = q.isEmpty || s.keys.any((k) => k.contains(q));
       if (visible) {
-        items.add(_PaletteItem(
-          label: s.label,
-          icon: s.icon,
-          onTap: () => _execute(s.fn),
-        ));
+        items.add(
+          _PaletteItem(
+            label: s.label,
+            icon: s.icon,
+            onTap: () => _execute(s.fn),
+          ),
+        );
       }
     }
 
@@ -225,7 +236,9 @@ class _CommandPaletteState extends State<CommandPalette> {
               if (items.isNotEmpty)
                 Flexible(
                   child: ListView.builder(
-                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.s4),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: AppSpacing.s4,
+                    ),
                     shrinkWrap: true,
                     itemCount: items.length,
                     itemBuilder: (context, i) => _ItemRow(
@@ -280,10 +293,7 @@ class _SearchField extends StatelessWidget {
               focusNode: focusNode,
               autofocus: true,
               onChanged: onChanged,
-              style: const TextStyle(
-                color: AppColors.text,
-                fontSize: 14,
-              ),
+              style: const TextStyle(color: AppColors.text, fontSize: 14),
               decoration: const InputDecoration(
                 hintText: 'Search hosts or jump to...',
                 hintStyle: TextStyle(color: AppColors.textMuted, fontSize: 14),
@@ -357,17 +367,17 @@ class _ItemRow extends StatelessWidget {
               ),
               if (focused)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 5,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.border,
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: const Text(
                     '↵',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: AppColors.textMuted,
-                    ),
+                    style: TextStyle(fontSize: 11, color: AppColors.textMuted),
                   ),
                 ),
             ],

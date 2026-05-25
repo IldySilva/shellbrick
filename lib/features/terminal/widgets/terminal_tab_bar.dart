@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import '../../../app/app_theme.dart';
 import '../models/terminal_session.dart';
@@ -98,14 +100,14 @@ class _SplitControls extends StatelessWidget {
           ],
           _SplitIconButton(
             icon: Icons.vertical_split_outlined,
-            tooltip: 'Split right  ⌘D',
+            tooltip: Platform.isMacOS ? 'Split right  ⌘D' : 'Split right  Ctrl D',
             onTap: onSplitHorizontal,
             active: splitAxis == Axis.horizontal,
           ),
           const SizedBox(width: 2),
           _SplitIconButton(
             icon: Icons.horizontal_split_outlined,
-            tooltip: 'Split down  ⌘⇧D',
+            tooltip: Platform.isMacOS ? 'Split down  ⌘⇧D' : 'Split down  Ctrl Shift D',
             onTap: onSplitVertical,
             active: splitAxis == Axis.vertical,
           ),

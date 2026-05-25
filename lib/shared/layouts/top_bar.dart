@@ -147,9 +147,9 @@ class _CommandPaletteButtonState extends State<_CommandPaletteButton> {
                   color: AppColors.border,
                   borderRadius: BorderRadius.circular(4),
                 ),
-                child: const Text(
-                  '⌘K',
-                  style: TextStyle(
+                child: Text(
+                  Platform.isMacOS ? '⌘K' : 'Ctrl K',
+                  style: const TextStyle(
                     fontSize: 10.5,
                     color: AppColors.textMuted,
                     letterSpacing: 0.2,
