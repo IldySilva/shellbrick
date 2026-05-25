@@ -71,13 +71,13 @@ jobs:
             --hide-extension "Xell.app" \
             --app-drop-link 450 185 \
             --no-internet-enable \
-            "dist/Shellbrick-${{ github.ref_name }}-macos.dmg" \
+            "dist/xell-macos.dmg" \
             "build/macos/Build/Products/Release/Xell.app"
 
       - uses: actions/upload-artifact@v4
         with:
           name: macos-dmg
-          path: dist/Shellbrick-*.dmg
+          path: dist/xell-macos.dmg
           retention-days: 7
 
   # ── Linux ──────────────────────────────────────────────────────────────────
@@ -111,12 +111,12 @@ jobs:
         run: |
           mkdir -p dist
           cd build/linux/x64/release/bundle
-          tar -czf "$GITHUB_WORKSPACE/dist/Shellbrick-${{ github.ref_name }}-linux-x64.tar.gz" .
+          tar -czf "$GITHUB_WORKSPACE/dist/xell-linux-x64.tar.gz" .
 
       - uses: actions/upload-artifact@v4
         with:
           name: linux-bundle
-          path: dist/Shellbrick-*-linux-x64.tar.gz
+          path: dist/xell-linux-x64.tar.gz
           retention-days: 7
 
   # ── GitHub Release ─────────────────────────────────────────────────────────
