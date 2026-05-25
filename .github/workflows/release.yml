@@ -63,7 +63,7 @@ jobs:
           brew install create-dmg
           mkdir -p dist
           create-dmg \
-            --volname "Shellbrick" \
+            --volname "Xell" \
             --window-pos 200 120 \
             --window-size 600 380 \
             --icon-size 120 \
@@ -145,7 +145,7 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          name: Shellbrick ${{ github.ref_name }}
+          name: Xell ${{ github.ref_name }}
           body_path: CHANGELOG_LATEST.md
           files: |
             artifacts/macos-dmg/*.dmg

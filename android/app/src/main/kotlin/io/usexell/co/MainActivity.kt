@@ -1,4 +1,4 @@
-package com.example.shellbrick
+package io.usexell.co
 
 import io.flutter.embedding.android.FlutterActivity
 

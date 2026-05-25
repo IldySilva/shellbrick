@@ -135,7 +135,9 @@ if [[ "$PLATFORM" == "linux" ]]; then
   ICON_DIR="$HOME/.local/share/icons/hicolor/256x256/apps"
 
   # Check libsecret (required for secure credential storage)
-  if ! ldconfig -p 2>/dev/null | grep -q "libsecret-1"; then
+  if ! { ldconfig -p 2>/dev/null | grep -q "libsecret-1" || \
+         find /usr/lib /usr/lib64 /usr/local/lib /lib 2>/dev/null \
+              -name "libsecret-1.so*" | grep -q .; }; then
     warn "libsecret-1 not detected — credential storage may not work."
     echo "    Install it before launching Xell:"
     echo "      Ubuntu/Debian:  sudo apt install libsecret-1-0"
@@ -149,9 +151,15 @@ if [[ "$PLATFORM" == "linux" ]]; then
   mkdir -p "$BUNDLE_DIR" "$BIN_DIR" "$DESKTOP_DIR" "$ICON_DIR"
   tar -xzf "$DOWNLOAD_FILE" -C "$BUNDLE_DIR"
 
-  # The Flutter Linux bundle has the binary at the root of the extracted dir
+  # The Flutter Linux bundle has the binary at the root of the extracted dir.
+  # Try the canonical name first, then any executable (handles legacy builds
+  # where the binary was still named after the old project name).
   BINARY="$(find "$BUNDLE_DIR" -maxdepth 1 -name "$BIN_NAME" -type f | head -1)"
-  [[ -n "$BINARY" ]] || die "Could not find '$BIN_NAME' binary in the bundle"
+  if [[ -z "$BINARY" ]]; then
+    BINARY="$(find "$BUNDLE_DIR" -maxdepth 1 -type f -executable \
+              ! -name "*.so" ! -name "*.so.*" | head -1)"
+  fi
+  [[ -n "$BINARY" ]] || die "Could not find the application binary in the bundle. Please report this at https://github.com/$REPO/issues"
   chmod +x "$BINARY"
 
   info "Linking to $BIN_LINK..."
