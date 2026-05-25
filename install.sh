@@ -231,7 +231,7 @@ if [[ "$PLATFORM" == "linux" ]]; then
   BIN_DIR="$HOME/.local/bin"
   BIN_LINK="$BIN_DIR/$BIN_NAME"
   DESKTOP_DIR="$HOME/.local/share/applications"
-  ICON_DIR="$HOME/.local/share/icons/hicolor/256x256/apps"
+  ICON_THEME_DIR="$HOME/.local/share/icons/hicolor"
 
   # Check libsecret (required for secure credential storage)
   if ! { ldconfig -p 2>/dev/null | grep -q "libsecret-1" || \
@@ -247,7 +247,7 @@ if [[ "$PLATFORM" == "linux" ]]; then
 
   info "Extracting bundle..."
   rm -rf "$BUNDLE_DIR"
-  mkdir -p "$BUNDLE_DIR" "$BIN_DIR" "$DESKTOP_DIR" "$ICON_DIR"
+  mkdir -p "$BUNDLE_DIR" "$BIN_DIR" "$DESKTOP_DIR" "$ICON_THEME_DIR"
   tar -xzf "$DOWNLOAD_FILE" -C "$BUNDLE_DIR"
 
   # The Flutter Linux bundle has the binary at the root of the extracted dir.
@@ -264,11 +264,24 @@ if [[ "$PLATFORM" == "linux" ]]; then
   info "Linking to $BIN_LINK..."
   ln -sf "$BINARY" "$BIN_LINK"
 
-  # Install icon if bundled
+  # Install icon if bundled. Use an absolute path in the desktop entry so
+  # launchers do not depend on icon-theme cache timing.
   ICON_SRC="$(find "$BUNDLE_DIR" -name "$BIN_NAME.png" 2>/dev/null | head -1)"
   if [[ -n "$ICON_SRC" ]]; then
-    cp "$ICON_SRC" "$ICON_DIR/$BIN_NAME.png"
-    ICON_VALUE="$BIN_NAME"
+    ICON_VALUE="$ICON_SRC"
+
+    for size in 16 32 48 64 128 256 512; do
+      ICON_SIZE_SRC="$(find "$BUNDLE_DIR" -path "*/icons/${size}x${size}.png" 2>/dev/null | head -1)"
+      if [[ -n "$ICON_SIZE_SRC" ]]; then
+        mkdir -p "$ICON_THEME_DIR/${size}x${size}/apps"
+        cp "$ICON_SIZE_SRC" "$ICON_THEME_DIR/${size}x${size}/apps/$BIN_NAME.png"
+      fi
+    done
+
+    if [[ ! -f "$ICON_THEME_DIR/256x256/apps/$BIN_NAME.png" ]]; then
+      mkdir -p "$ICON_THEME_DIR/256x256/apps"
+      cp "$ICON_SRC" "$ICON_THEME_DIR/256x256/apps/$BIN_NAME.png"
+    fi
   else
     ICON_VALUE="utilities-terminal"
   fi
@@ -279,12 +292,13 @@ if [[ "$PLATFORM" == "linux" ]]; then
 [Desktop Entry]
 Name=Xell
 Comment=Open-source SSH workspace
-Exec=$BINARY
+Exec=$BIN_LINK
 Icon=$ICON_VALUE
 Terminal=false
 Type=Application
 Categories=Network;RemoteAccess;System;
 StartupNotify=true
+StartupWMClass=xell
 EOF
   chmod +x "$DESKTOP_DIR/$BIN_NAME.desktop"
 

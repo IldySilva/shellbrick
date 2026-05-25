@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:xterm/xterm.dart' hide TerminalController;
 import '../../../app/app_theme.dart';
+import '../../../features/sftp/views/sftp_page.dart';
 import '../../../features/snippets/controllers/snippet_controller.dart';
 import '../controllers/command_history_controller.dart';
 import '../controllers/terminal_controller.dart';
@@ -71,17 +72,20 @@ class TerminalPage extends StatefulWidget {
 
 class _TerminalPageState extends State<TerminalPage> {
   final _splitRatioNotifier = ValueNotifier<double>(0.5);
+  final _sftpRatioNotifier = ValueNotifier<double>(0.55);
   bool _renamingWorkspace = false;
   String? _renamingWorkspaceId;
   final _renameController = TextEditingController();
   final _renameFocus = FocusNode();
   bool _sidebarOpen = false;
+  bool _sftpSplitOpen = false;
 
   TerminalController get _c => widget.controller;
 
   @override
   void dispose() {
     _splitRatioNotifier.dispose();
+    _sftpRatioNotifier.dispose();
     _renameController.dispose();
     _renameFocus.dispose();
     super.dispose();
@@ -174,27 +178,14 @@ class _TerminalPageState extends State<TerminalPage> {
                                   ? () => setState(() => _sidebarOpen = !_sidebarOpen)
                                   : null,
                               sidebarOpen: _sidebarOpen,
+                              onToggleSftpSplit: () => setState(() => _sftpSplitOpen = !_sftpSplitOpen),
+                              sftpSplitOpen: _sftpSplitOpen,
                             ),
                             Expanded(
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: _buildTerminalArea(
-                                      wsSessions,
-                                      activeId: activeId,
-                                      splitAxis: splitAxis,
-                                    ),
-                                  ),
-                                  if (_sidebarOpen && widget.snippetController != null)
-                                    TerminalRightSidebar(
-                                      snippetController: widget.snippetController!,
-                                      historyController: widget.historyController!,
-                                      themeNotifier: widget.themeNotifier!,
-                                      onThemeChanged: widget.onThemeChanged!,
-                                      onPaste: widget.onPaste ?? (_) {},
-                                      onRun: widget.onRun ?? (_) {},
-                                    ),
-                                ],
+                              child: _buildMainArea(
+                                wsSessions,
+                                activeId: activeId,
+                                splitAxis: splitAxis,
                               ),
                             ),
                           ],
@@ -208,6 +199,46 @@ class _TerminalPageState extends State<TerminalPage> {
           },
         );
       },
+    );
+  }
+
+  Widget _buildMainArea(
+    List<TerminalSession> wsSessions, {
+    required String? activeId,
+    required Axis? splitAxis,
+  }) {
+    final terminalWithSidebar = Row(
+      children: [
+        Expanded(
+          child: _buildTerminalArea(
+            wsSessions,
+            activeId: activeId,
+            splitAxis: splitAxis,
+          ),
+        ),
+        if (_sidebarOpen && widget.snippetController != null)
+          TerminalRightSidebar(
+            snippetController: widget.snippetController!,
+            historyController: widget.historyController!,
+            themeNotifier: widget.themeNotifier!,
+            onThemeChanged: widget.onThemeChanged!,
+            onPaste: widget.onPaste ?? (_) {},
+            onRun: widget.onRun ?? (_) {},
+          ),
+      ],
+    );
+
+    if (!_sftpSplitOpen) return terminalWithSidebar;
+
+    return ValueListenableBuilder<double>(
+      valueListenable: _sftpRatioNotifier,
+      builder: (context, ratio, _) => _SplitLayout(
+        axis: Axis.horizontal,
+        ratio: ratio,
+        onRatioChanged: (r) => _sftpRatioNotifier.value = r,
+        primary: terminalWithSidebar,
+        secondary: SftpPage(terminalController: _c),
+      ),
     );
   }
 

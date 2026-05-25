@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'package:dartssh2/dartssh2.dart';
 import '../../../core/exceptions.dart';
+import '../../hosts/models/os_type.dart';
 import '../../hosts/models/ssh_host.dart';
 
 class SshService {
@@ -99,4 +101,25 @@ class SshService {
   }
 
   void disconnect(SSHClient client) => client.close();
+
+  Future<OsType> detectOs(SSHClient client) async {
+    try {
+      final uname = await _exec(client, 'uname -s');
+      final distroId = uname.trim().toLowerCase() == 'linux'
+          ? await _exec(client, "grep '^ID=' /etc/os-release 2>/dev/null | cut -d= -f2 | tr -d '\"'")
+          : null;
+      return OsType.fromUname(uname, distroId);
+    } catch (_) {
+      return OsType.unknown;
+    }
+  }
+
+  Future<String> _exec(SSHClient client, String command) async {
+    final session = await client.execute(command);
+    final buf = StringBuffer();
+    await for (final chunk in session.stdout) {
+      buf.write(utf8.decode(chunk, allowMalformed: true));
+    }
+    return buf.toString().trim();
+  }
 }

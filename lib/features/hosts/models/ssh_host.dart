@@ -1,3 +1,5 @@
+import 'os_type.dart';
+
 enum AuthType { password, privateKey, sshAgent }
 
 class SshHost {
@@ -12,6 +14,7 @@ class SshHost {
   final bool isFavorite;
   final DateTime? lastConnectedAt;
   final String? notes;
+  final OsType? detectedOs;
 
   const SshHost({
     required this.id,
@@ -25,6 +28,7 @@ class SshHost {
     this.isFavorite = false,
     this.lastConnectedAt,
     this.notes,
+    this.detectedOs,
   });
 
   SshHost copyWith({
@@ -38,6 +42,7 @@ class SshHost {
     bool? isFavorite,
     DateTime? lastConnectedAt,
     String? notes,
+    OsType? detectedOs,
   }) => SshHost(
     id: id,
     name: name ?? this.name,
@@ -50,6 +55,7 @@ class SshHost {
     isFavorite: isFavorite ?? this.isFavorite,
     lastConnectedAt: lastConnectedAt ?? this.lastConnectedAt,
     notes: notes ?? this.notes,
+    detectedOs: detectedOs ?? this.detectedOs,
   );
 
   Map<String, dynamic> toJson() => {
@@ -64,6 +70,7 @@ class SshHost {
     'isFavorite': isFavorite,
     'lastConnectedAt': lastConnectedAt?.toIso8601String(),
     'notes': notes,
+    'detectedOs': detectedOs?.name,
   };
 
   factory SshHost.fromJson(Map<String, dynamic> json) => SshHost(
@@ -80,6 +87,9 @@ class SshHost {
         ? DateTime.parse(json['lastConnectedAt'] as String)
         : null,
     notes: json['notes'] as String?,
+    detectedOs: json['detectedOs'] != null
+        ? OsType.values.byName(json['detectedOs'] as String)
+        : null,
   );
 
   static String generateId() =>

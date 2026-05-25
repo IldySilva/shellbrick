@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:dartssh2/dartssh2.dart';
 import 'package:xterm/xterm.dart';
+import '../../hosts/models/os_type.dart';
 import '../../hosts/models/ssh_host.dart';
 import 'workspace.dart';
 
@@ -15,6 +16,8 @@ class TerminalSession {
   Terminal? xterm;
   String? errorMessage;
   String workspaceId;
+
+  OsType? detectedOs;
 
   // Managed by TerminalController — cancelled on close.
   StreamSubscription<List<int>>? stdoutSub;

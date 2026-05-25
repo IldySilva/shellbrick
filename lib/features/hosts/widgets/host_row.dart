@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../app/app_theme.dart';
+import '../../../shared/widgets/os_icon.dart';
 import '../models/ssh_host.dart';
 
 class HostRow extends StatefulWidget {
@@ -62,6 +63,10 @@ class _HostRowState extends State<HostRow> {
             children: [
               _StatusDot(connected: false),
               const SizedBox(width: AppSpacing.s12),
+              if (host.detectedOs != null) ...[
+                OsIcon(os: host.detectedOs!, size: 16),
+                const SizedBox(width: AppSpacing.s8),
+              ],
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

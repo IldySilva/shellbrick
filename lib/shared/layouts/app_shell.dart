@@ -66,7 +66,12 @@ class _AppShellState extends State<AppShell> with WindowListener {
     super.initState();
     if (_isDesktop) windowManager.addListener(this);
     _hostController = HostController()..load();
-    _terminalController = TerminalController();
+    _terminalController = TerminalController()
+      ..onOsDetected = (hostId, os) {
+        final hosts = _hostController.hostsNotifier.value;
+        final host = hosts.where((h) => h.id == hostId).firstOrNull;
+        if (host != null) _hostController.update(host.copyWith(detectedOs: os));
+      };
     _settingsController = SettingsController()..load();
     _tunnelController = TunnelController();
     _snippetController = SnippetController();

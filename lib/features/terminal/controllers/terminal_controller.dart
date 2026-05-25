@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:xterm/xterm.dart';
+import '../../hosts/models/os_type.dart';
 import '../../hosts/models/ssh_host.dart';
 import '../models/terminal_session.dart';
 import '../models/workspace.dart';
@@ -10,6 +11,8 @@ import '../services/ssh_service.dart';
 class TerminalController {
   final _service = SshService();
   final _commandStreamController = StreamController<String>.broadcast();
+
+  void Function(String hostId, OsType os)? onOsDetected;
   static const _interactiveEchoFlushBytes = 32;
 
   Stream<String> get commandTypedStream => _commandStreamController.stream;
@@ -145,6 +148,9 @@ class TerminalController {
       session.xterm = xterm;
       session.status = SessionStatus.connected;
       _refresh();
+
+      unawaited(_detectOs(session, client));
+
       return session;
     } catch (e) {
       session.status = SessionStatus.error;
@@ -246,6 +252,16 @@ class TerminalController {
     if (activeWorkspaceIdNotifier.value == id) {
       switchWorkspace(kDefaultWorkspaceId);
     }
+  }
+
+  // ── OS detection ─────────────────────────────────────────────────────────
+
+  Future<void> _detectOs(TerminalSession session, dynamic client) async {
+    final os = await _service.detectOs(client);
+    if (os == OsType.unknown) return;
+    session.detectedOs = os;
+    _refresh();
+    onOsDetected?.call(session.host.id, os);
   }
 
   // ── Internal ──────────────────────────────────────────────────────────────

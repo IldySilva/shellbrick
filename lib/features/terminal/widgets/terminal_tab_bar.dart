@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import '../../../app/app_theme.dart';
+import '../../../shared/widgets/os_icon.dart';
 import '../models/terminal_session.dart';
 
 class TerminalTabBar extends StatelessWidget {
@@ -16,6 +17,8 @@ class TerminalTabBar extends StatelessWidget {
   final VoidCallback? onCloseSplit;
   final VoidCallback? onToggleSidebar;
   final bool sidebarOpen;
+  final VoidCallback? onToggleSftpSplit;
+  final bool sftpSplitOpen;
 
   const TerminalTabBar({
     super.key,
@@ -30,6 +33,8 @@ class TerminalTabBar extends StatelessWidget {
     this.onCloseSplit,
     this.onToggleSidebar,
     this.sidebarOpen = false,
+    this.onToggleSftpSplit,
+    this.sftpSplitOpen = false,
   });
 
   @override
@@ -65,6 +70,8 @@ class TerminalTabBar extends StatelessWidget {
             onCloseSplit: onCloseSplit,
             onToggleSidebar: onToggleSidebar,
             sidebarOpen: sidebarOpen,
+            onToggleSftpSplit: onToggleSftpSplit,
+            sftpSplitOpen: sftpSplitOpen,
           ),
         ],
       ),
@@ -81,6 +88,8 @@ class _SplitControls extends StatelessWidget {
   final VoidCallback? onCloseSplit;
   final VoidCallback? onToggleSidebar;
   final bool sidebarOpen;
+  final VoidCallback? onToggleSftpSplit;
+  final bool sftpSplitOpen;
 
   const _SplitControls({
     this.splitAxis,
@@ -89,6 +98,8 @@ class _SplitControls extends StatelessWidget {
     this.onCloseSplit,
     this.onToggleSidebar,
     this.sidebarOpen = false,
+    this.onToggleSftpSplit,
+    this.sftpSplitOpen = false,
   });
 
   @override
@@ -132,6 +143,15 @@ class _SplitControls extends StatelessWidget {
               active: sidebarOpen,
             ),
           ],
+          const SizedBox(width: 2),
+          Container(width: 1, height: 14, color: AppColors.border),
+          const SizedBox(width: 2),
+          _SplitIconButton(
+            icon: Icons.folder_open_outlined,
+            tooltip: sftpSplitOpen ? 'Close SFTP' : 'Open SFTP',
+            onTap: onToggleSftpSplit,
+            active: sftpSplitOpen,
+          ),
         ],
       ),
     );
@@ -294,6 +314,10 @@ class _TabState extends State<_Tab> {
                 ),
               ),
               const SizedBox(width: AppSpacing.s8),
+              if (widget.session.detectedOs != null) ...[
+                OsIcon(os: widget.session.detectedOs!, size: 13),
+                const SizedBox(width: AppSpacing.s4),
+              ],
               Text(
                 widget.session.host.name,
                 style: TextStyle(
