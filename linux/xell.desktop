@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Xell
+Comment=Open-source SSH workspace
+Exec=xell
+Icon=xell
+Type=Application
+Categories=Network;RemoteAccess;System;
+Keywords=ssh;terminal;remote;shell;
+StartupNotify=true
+StartupWMClass=xell
