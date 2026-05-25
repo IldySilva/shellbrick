@@ -50,13 +50,13 @@ jobs:
           security default-keychain -s build.keychain
           codesign --deep --force --options=runtime \
             --sign "Developer ID Application: $APPLE_TEAM_ID" \
-            build/macos/Build/Products/Release/shellbrick.app
-          xcrun notarytool submit build/macos/Build/Products/Release/shellbrick.app \
+            build/macos/Build/Products/Release/Xell.app
+          xcrun notarytool submit build/macos/Build/Products/Release/Xell.app \
             --apple-id "$APPLE_APPLE_ID" \
             --password "$APPLE_APP_PASSWORD" \
             --team-id "$APPLE_TEAM_ID" \
             --wait
-          xcrun stapler staple build/macos/Build/Products/Release/shellbrick.app
+          xcrun stapler staple build/macos/Build/Products/Release/Xell.app
 
       - name: Create DMG
         run: |
@@ -67,12 +67,12 @@ jobs:
             --window-pos 200 120 \
             --window-size 600 380 \
             --icon-size 120 \
-            --icon "shellbrick.app" 150 185 \
-            --hide-extension "shellbrick.app" \
+            --icon "Xell.app" 150 185 \
+            --hide-extension "Xell.app" \
             --app-drop-link 450 185 \
             --no-internet-enable \
             "dist/Shellbrick-${{ github.ref_name }}-macos.dmg" \
-            "build/macos/Build/Products/Release/shellbrick.app"
+            "build/macos/Build/Products/Release/Xell.app"
 
       - uses: actions/upload-artifact@v4
         with:
